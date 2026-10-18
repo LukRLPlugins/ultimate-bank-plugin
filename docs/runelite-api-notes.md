@@ -39,6 +39,14 @@ Current RuneLite client version at setup: **1.13.2**.
   See `StashTracker` for where s1..s3 come from.
 - Menus: use `client.getMenu().createMenuEntry(i)` (not the deprecated `client.createMenuEntry`) with `MenuAction.RUNELITE`.
 
+- **Virtual tag + layout:** a `TagManager.registerTag` tag can carry a core layout: `layoutManager.saveLayout(new Layout(tag))`
+  then `bankTagsService.openBankTag(tag, OPTION_ALLOW_MODIFICATIONS)` re-reads it. Items matching the tag but missing
+  from the layout get auto-placed into gaps, so the layout should position every owned member.
+- The bank container fires `ItemContainerChanged` on every open even when unchanged. Fingerprint ids+quantities and
+  skip rebuilds when equal, or opening the bank hitches (Bank Skill Sorting issues #5/#12).
+- `ItemManager.canonicalize` turns noted items and placeholders into the real item; `ItemVariationMapping.map` gives
+  the variation base (degraded/charged/ornament variants).
+
 ## Tooling gotchas
 - The compile hook runs after **every** edit, so when an edit needs new imports, add the imports first or in the
   same edit. Otherwise you get a spurious "cannot find symbol" in between.

@@ -5,6 +5,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
 
 /**
  * One {@code @ConfigSection} per feature. Each section starts with an enable toggle,
@@ -71,7 +72,8 @@ public interface UltimateBankConfig extends Config
 	@ConfigItem(
 		keyName = "storageSavingsTagTab",
 		name = "Storable tag tab",
-		description = "Add a 'storable' bank tag tab that shows only storable items (requires the Bank Tags plugin)",
+		description = "Add a 'storable' bank tag tab that shows only storable items (requires the Bank Tags plugin). "
+			+ "With Sorted tabs on, it becomes 'storable (ub)', with a titled section per storage location.",
 		section = storageSavingsSection,
 		position = 3
 	)
@@ -271,6 +273,210 @@ public interface UltimateBankConfig extends Config
 
 	@ConfigItem(keyName = "storageSavingsMysteriousStranger", name = "Mysterious stranger", description = "Hallowed Sepulchre items", section = storageSavingsLocationsSection, position = 20)
 	default boolean storageSavingsMysteriousStranger()
+	{
+		return true;
+	}
+
+	// ---- Sorted tabs ----
+
+	@ConfigSection(
+		name = "Sorted tabs",
+		description = "Auto-sorted skill tabs with titled sections that you can customize",
+		position = 2
+	)
+	String sortedTabsSection = "sortedTabsSection";
+
+	@ConfigSection(
+		name = "Sorted tabs: which tabs",
+		description = "Which sorted tabs to show",
+		position = 3,
+		closedByDefault = true
+	)
+	String sortedTabsTabsSection = "sortedTabsTabsSection";
+
+	@ConfigItem(
+		keyName = "sortedTabsEnabled",
+		name = "Enable",
+		description = "Add auto-sorted skill tabs, named like 'melee (ub)', to your bank tag tabs (requires the Bank Tags plugin)",
+		section = sortedTabsSection,
+		position = 0
+	)
+	default boolean sortedTabsEnabled()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "sortedTabsTitles",
+		name = "Section titles",
+		description = "Show a title and divider line above each section. Off = compact tabs with no blank title rows",
+		section = sortedTabsSection,
+		position = 1
+	)
+	default boolean sortedTabsTitles()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "sortedTabsLowerTier",
+		name = "Lower tier at bottom",
+		description = "In melee, range and mage, move lower-level gear to a 'Lower tier' group at the bottom",
+		section = sortedTabsSection,
+		position = 2
+	)
+	default boolean sortedTabsLowerTier()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "sortedTabsLowerTierCount",
+		name = "Loadout tiers kept",
+		description = "How many of the highest requirement levels per section stay at the top before the rest count as lower tier",
+		section = sortedTabsSection,
+		position = 3
+	)
+	@Range(min = 1, max = 10)
+	default int sortedTabsLowerTierCount()
+	{
+		return 3;
+	}
+
+	@ConfigItem(keyName = "sortedTabsMelee", name = "Melee", description = "Show the melee tab", section = sortedTabsTabsSection, position = 0)
+	default boolean sortedTabsMelee()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsRange", name = "Range", description = "Show the range tab", section = sortedTabsTabsSection, position = 1)
+	default boolean sortedTabsRange()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsMage", name = "Mage", description = "Show the mage tab", section = sortedTabsTabsSection, position = 2)
+	default boolean sortedTabsMage()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsPrayer", name = "Prayer", description = "Show the prayer tab", section = sortedTabsTabsSection, position = 3)
+	default boolean sortedTabsPrayer()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsTeleports", name = "Teleports", description = "Show the teleports tab", section = sortedTabsTabsSection, position = 4)
+	default boolean sortedTabsTeleports()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsCooking", name = "Cooking", description = "Show the cooking tab", section = sortedTabsTabsSection, position = 5)
+	default boolean sortedTabsCooking()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsWoodcuttingFiremaking", name = "Woodcutting + Firemaking", description = "Show the woodcutting + firemaking tab", section = sortedTabsTabsSection, position = 6)
+	default boolean sortedTabsWoodcuttingFiremaking()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsFletching", name = "Fletching", description = "Show the fletching tab", section = sortedTabsTabsSection, position = 7)
+	default boolean sortedTabsFletching()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsFishing", name = "Fishing", description = "Show the fishing tab", section = sortedTabsTabsSection, position = 8)
+	default boolean sortedTabsFishing()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsCrafting", name = "Crafting", description = "Show the crafting tab", section = sortedTabsTabsSection, position = 9)
+	default boolean sortedTabsCrafting()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsMiningSmithing", name = "Mining + Smithing", description = "Show the mining + smithing tab", section = sortedTabsTabsSection, position = 10)
+	default boolean sortedTabsMiningSmithing()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsHerblore", name = "Herblore", description = "Show the herblore tab", section = sortedTabsTabsSection, position = 11)
+	default boolean sortedTabsHerblore()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsAgilityThieving", name = "Agility + Thieving", description = "Show the agility + thieving tab", section = sortedTabsTabsSection, position = 12)
+	default boolean sortedTabsAgilityThieving()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsSlayer", name = "Slayer", description = "Show the slayer tab", section = sortedTabsTabsSection, position = 13)
+	default boolean sortedTabsSlayer()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsFarming", name = "Farming", description = "Show the farming tab", section = sortedTabsTabsSection, position = 14)
+	default boolean sortedTabsFarming()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsRunecraft", name = "Runecraft", description = "Show the runecraft tab", section = sortedTabsTabsSection, position = 15)
+	default boolean sortedTabsRunecraft()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsHunter", name = "Hunter", description = "Show the hunter tab", section = sortedTabsTabsSection, position = 16)
+	default boolean sortedTabsHunter()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsConstruction", name = "Construction", description = "Show the construction tab", section = sortedTabsTabsSection, position = 17)
+	default boolean sortedTabsConstruction()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsSailing", name = "Sailing", description = "Show the sailing tab", section = sortedTabsTabsSection, position = 18)
+	default boolean sortedTabsSailing()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsQuests", name = "Quests", description = "Show the quests tab", section = sortedTabsTabsSection, position = 19)
+	default boolean sortedTabsQuests()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsMisc", name = "Misc", description = "Show the misc tab", section = sortedTabsTabsSection, position = 20)
+	default boolean sortedTabsMisc()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsCosmetics", name = "Cosmetics", description = "Show the cosmetics tab", section = sortedTabsTabsSection, position = 21)
+	default boolean sortedTabsCosmetics()
+	{
+		return true;
+	}
+
+	@ConfigItem(keyName = "sortedTabsStorable", name = "Storable", description = "Show the storable tab: banked items that could be stored elsewhere, one section per storage location (needs Storage savings and its 'Storable tag tab' option)", section = sortedTabsTabsSection, position = 22)
+	default boolean sortedTabsStorable()
 	{
 		return true;
 	}

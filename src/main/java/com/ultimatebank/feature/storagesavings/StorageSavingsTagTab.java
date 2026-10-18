@@ -2,6 +2,7 @@ package com.ultimatebank.feature.storagesavings;
 
 import com.google.common.base.Strings;
 import com.ultimatebank.UltimateBankConfig;
+import com.ultimatebank.core.ExtraTabs;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +29,7 @@ class StorageSavingsTagTab
 {
 	static final String TAG_NAME = "storable";
 
-	private static final int ICON_ITEM_ID = ItemID.POH_FLATPACK_TREASURE_CHEST3;
+	static final int ICON_ITEM_ID = ItemID.POH_FLATPACK_TREASURE_CHEST3;
 	/** Set when we added the tab, so we only ever remove a tab we created and never a user's own */
 	private static final String TAB_CREATED_KEY = "storageSavingsTagTabCreated";
 
@@ -36,6 +37,7 @@ class StorageSavingsTagTab
 	private final TagManager tagManager;
 	private final BankTagsService bankTagsService;
 	private final UltimateBankConfig config;
+	private final ExtraTabs extraTabs;
 
 	// Replaced whole, never modified, so the registered tag always reads a consistent set
 	private volatile Set<Integer> items = Collections.emptySet();
@@ -43,8 +45,9 @@ class StorageSavingsTagTab
 
 	@Inject
 	StorageSavingsTagTab(ConfigManager configManager, TagManager tagManager, BankTagsService bankTagsService,
-		UltimateBankConfig config)
+		UltimateBankConfig config, ExtraTabs extraTabs)
 	{
+		this.extraTabs = extraTabs;
 		this.configManager = configManager;
 		this.tagManager = tagManager;
 		this.bankTagsService = bankTagsService;
@@ -52,11 +55,11 @@ class StorageSavingsTagTab
 	}
 
 	/**
-	 * Adds or removes the tag and tab to match config.
+	 * Adds or removes the tag and tab to match config. Hidden while Sorted tabs shows "storable (ub)" instead.
 	 */
 	void sync()
 	{
-		if (config.storageSavingsTagTab())
+		if (config.storageSavingsTagTab() && !extraTabs.isDisplayed())
 		{
 			if (!registered)
 			{

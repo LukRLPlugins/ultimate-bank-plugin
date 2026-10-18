@@ -5,7 +5,8 @@ All sources below are BSD-2-Clause (checked 2026-10-18). Re-check the license be
 
 | Feature | Status | Source plugin(s) | Repo |
 |---|---|---|---|
-| Tag layouts | idea | Bank Tag Layouts (geheur). Core RuneLite now includes layouts too | https://github.com/geheur/bank-tag-custom-layouts |
+| Sorted tabs | in-progress (phase 1/4) | Bank Skill Sorting (Frailrain) | https://github.com/Frailrain/Bank-Skill-Sorting |
+| Tag layouts (Layout tools) | parked | Bank Tag Layouts (geheur). Built, works, parked on branch `layout-tools` | https://github.com/geheur/bank-tag-custom-layouts |
 | Inventory setups | idea | Inventory Setups (dillydill123) | https://github.com/dillydill123/inventory-setups |
 | Bank value | idea | Bank Value (spudjb) | https://github.com/spudjb/runelite-bank-value |
 | Better search | idea | Better Bank Search (KaasPeer1), Extended Bank Search (khendricksen) | https://github.com/KaasPeer1/better-bank-search, https://github.com/khendricksen/runelite-extended-bank-search |
@@ -14,9 +15,15 @@ All sources below are BSD-2-Clause (checked 2026-10-18). Re-check the license be
 
 ## Feature notes
 
-### Tag layouts
-- Core bank tags already support layouts (`net.runelite.client.plugins.banktags.tabs.Layout`, `BankTagsService`). First decide which parts of geheur's plugin core doesn't cover yet (e.g. auto-layout presets, duplicate items, layout import/export).
-- Desired tweaks: _TBD with user_
+### Sorted tabs
+- What the user actually wanted from "tag layouts": auto-sorted skill tabs with titled sections that they can
+  customize (add/remove items, sub-categories, titles). Design + phases: docs/features/sorted-tabs.md
+- Desired tweaks (decided 2026-10-18): start from Bank Skill Sorting's skill tabs; edits never overwritten;
+  edit in-bank and in a sidebar panel; two title levels; items in multiple tabs; variant-aware; dynamic slayer tab.
+
+### Tag layouts (parked)
+- Built as "Layout tools" (zigzag auto-layout, insert/remove rows) on branch `layout-tools`; works in-game but wasn't
+  what the user wanted. Not merged. Core already covers layouts, placeholders, duplicates, import/export.
 
 ### Inventory setups
 - Upstream filters the bank via `TagManager.registerTag` + `BankTagsService.openBankTag`.

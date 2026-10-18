@@ -21,5 +21,7 @@ Report each item as a pass, a fail, or a warning, with `file:line` for each prob
 5. **Lifecycle.** Every feature's `shutDown()` undoes its `startUp()` (overlays, registered tags, widget changes, executors).
 6. **Config.** Compare config keys to the last release tag (`git diff <tag> -- src/main/java/com/ultimatebank/UltimateBankConfig.java`). Any renamed or removed key needs a migration.
 7. **Packaging.** No `com.example` leftovers, no `META-INF/services`, `.gitignore` covers build output, `build.gradle` still matches the template, `runelite-plugin.properties` is complete, the README is current, and any icon.png is ≤ 48x72.
-8. **Attribution.** Every ported feature in `docs/roadmap.md` has a row in `docs/attribution.md`.
-9. Then walk through `docs/plugin-hub-submission.md` and list what's left before submitting.
+8. **Identity.** No real-name leaks: grep the working tree and `git log --all --format='%an %ae %cn %ce'` for anything
+   other than Luk (see CLAUDE.md › Identity). Any hit is a blocker.
+9. **Attribution.** Every ported feature in `docs/roadmap.md` has a row in `docs/attribution.md`.
+10. Then walk through `docs/plugin-hub-submission.md` and list what's left before submitting.

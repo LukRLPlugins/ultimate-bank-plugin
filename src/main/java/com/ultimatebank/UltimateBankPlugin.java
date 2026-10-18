@@ -3,6 +3,7 @@ package com.ultimatebank;
 import com.google.inject.Provides;
 import com.ultimatebank.core.BankFeature;
 import com.ultimatebank.core.FeatureManager;
+import com.ultimatebank.feature.sortedtabs.SortedTabsFeature;
 import com.ultimatebank.feature.storagesavings.StorageSavingsFeature;
 import java.util.List;
 import javax.inject.Inject;
@@ -30,7 +31,8 @@ public class UltimateBankPlugin extends Plugin
 	 * Every feature in the plugin. Add new features here (order = start order).
 	 */
 	private static final List<Class<? extends BankFeature>> FEATURES = List.of(
-		StorageSavingsFeature.class
+		StorageSavingsFeature.class,
+		SortedTabsFeature.class
 	);
 
 	@Inject

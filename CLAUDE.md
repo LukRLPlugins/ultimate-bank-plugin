@@ -7,6 +7,14 @@ plugins (tag layouts, inventory setups, bank value, search, POH storage hints). 
 Hub from day one.** Every change must pass the rules in AGENTS.md (RuneLite's official agent
 rules, kept verbatim from the example-plugin template; don't edit it, re-sync it from upstream).
 
+## Identity (public)
+- This project is published under the pseudonym **Luk** (GitHub org **LukRLPlugins**). Never write the maintainer's
+  real name or personal email anywhere: code, copyright headers, docs, commit messages, issues, PRs.
+- Copyright lines for our code: `Copyright (c) 2026, Luk`. Commits use the repo-local git identity (already set).
+- Before any `git push` or `gh` command that writes (issues, PRs, project, repo), check
+  `gh api user --jq .login` is the Luk account; if not, `gh auth switch`. Push only to the `origin` remote
+  (`git@github-luk:...`, the Luk SSH key), never via the personal account.
+
 ## Commands
 - Build + tests: `./gradlew build`
 - Fast compile check: `./gradlew compileJava compileTestJava -q` (a PostToolUse hook runs this after every .java edit, so fix reported errors immediately)
@@ -16,6 +24,7 @@ rules, kept verbatim from the example-plugin template; don't edit it, re-sync it
 ## Architecture
 - `UltimateBankPlugin` is a thin shell. It holds the `FEATURES` list and forwards lifecycle and config changes to `core/FeatureManager`.
 - `core/`: shared infrastructure only (the `BankFeature` contract, feature manager, and later the shared bank-state cache, pricing, and widget helpers). Features depend on core, never on each other.
+- Cross-feature hand-offs go through core: e.g. `core/ExtraTabs` lets a feature publish a sectioned tab (Storage savings' storable items) that Sorted tabs shows as a `(ub)` tab.
 - `feature/<name>/`: one package per feature. The entry class implements `BankFeature`, is enabled by its own toggle, gets registered on the EventBus only while enabled, and must fully undo itself in `shutDown()`.
 - `UltimateBankConfig`: a single config group `ultimatebank`, with one `@ConfigSection` per feature. Key names are prefixed with the feature name (e.g. `bankValueShowHa`). Keys are permanent once released.
 - Persisting non-config data (saved setups, layouts): use `ConfigManager` with per-profile keys, or `Filepath` per AGENTS.md. Never write raw files.
