@@ -1,0 +1,15 @@
+.gradle
+build
+out/
+.idea/
+*.iml
+.project
+.settings/
+.classpath
+.vscode/
+nbactions.xml
+nb-configuration.xml
+nbproject/
+*.class
+*.tmp
+.claude/settings.local.json

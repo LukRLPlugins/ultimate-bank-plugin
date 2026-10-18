@@ -1,0 +1,49 @@
+@AGENTS.md
+
+# Ultimate Bank — project guide
+
+An all-in-one RuneLite bank plugin that combines and tunes features from existing Plugin Hub
+plugins (tag layouts, inventory setups, bank value, search, POH storage hints). **Target: Plugin
+Hub from day one.** Every change must pass the rules in AGENTS.md (RuneLite's official agent
+rules, kept verbatim from the example-plugin template; don't edit it, re-sync it from upstream).
+
+## Commands
+- Build + tests: `./gradlew build`
+- Fast compile check: `./gradlew compileJava compileTestJava -q` (a PostToolUse hook runs this after every .java edit, so fix reported errors immediately)
+- Launch dev client: `./gradlew run`. Only the user can test in-game (see "Testing" in AGENTS.md); never drive the game client yourself.
+- JDK: Temurin 11 at `C:\Program Files\Eclipse Adoptium\jdk-11*`. If `java` isn't found, set `JAVA_HOME` to it.
+
+## Architecture
+- `UltimateBankPlugin` is a thin shell. It holds the `FEATURES` list and forwards lifecycle and config changes to `core/FeatureManager`.
+- `core/`: shared infrastructure only (the `BankFeature` contract, feature manager, and later the shared bank-state cache, pricing, and widget helpers). Features depend on core, never on each other.
+- `feature/<name>/`: one package per feature. The entry class implements `BankFeature`, is enabled by its own toggle, gets registered on the EventBus only while enabled, and must fully undo itself in `shutDown()`.
+- `UltimateBankConfig`: a single config group `ultimatebank`, with one `@ConfigSection` per feature. Key names are prefixed with the feature name (e.g. `bankValueShowHa`). Keys are permanent once released.
+- Persisting non-config data (saved setups, layouts): use `ConfigManager` with per-profile keys, or `Filepath` per AGENTS.md. Never write raw files.
+- To add a feature, follow the `/new-feature` skill.
+
+## Building on core RuneLite, not around it
+Core already ships bank tags with layouts. Before reimplementing anything, check whether core exposes it:
+- `BankTagsService.openBankTag(tag, options)`, `getActiveLayout()`: open virtual tag tabs with layouts (this is how Inventory Setups filters the bank).
+- `TagManager.registerTag(name, BankTag)`: virtual tags backed by a predicate.
+- `ItemManager.getItemPrice / getItemComposition`, `ItemContainerChanged` for `InventoryID.BANK`.
+- To inspect any RuneLite API signature: `javap -cp <client jar from ~/.gradle/caches> <class>`, or read https://github.com/runelite/runelite.
+Running notes and gotchas live in `docs/runelite-api-notes.md`. Add to it whenever you learn something non-obvious.
+
+## Porting from other plugins
+All current source plugins are BSD-2-Clause (see `docs/roadmap.md`). When porting:
+1. Read their implementation (shallow clone into the scratchpad, never into this repo).
+2. Reimplement in our feature pattern. Don't paste whole files, and keep their copyright header on any substantially copied file.
+3. Record the source, author, and license in `docs/attribution.md`.
+Use the `/port-from-plugin` skill.
+
+## Docs map (read on demand)
+- `docs/roadmap.md`: feature list, sources, status, and the user's desired tweaks. **Update status whenever a feature lands.**
+- `docs/runelite-api-notes.md`: bank widgets, events, and gotchas.
+- `docs/features/<name>.md`: design notes per feature (behaviour, config keys, events used, open questions).
+- `docs/plugin-hub-submission.md`: release checklist (also the `/hub-check` skill).
+- `docs/attribution.md`: credits for ported code.
+
+## Working style
+- Small, focused commits, one feature or fix each. No reformatting mixed with logic (Hub reviewers read the diffs).
+- Match the existing code style: tabs, Allman braces (RuneLite style), Lombok `@Slf4j`.
+- When a feature is done, give the user a concrete in-game test checklist and wait for their confirmation (AGENTS.md › Testing).
