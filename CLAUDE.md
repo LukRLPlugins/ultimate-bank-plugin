@@ -29,7 +29,6 @@ rules, kept verbatim from the example-plugin template; don't edit it, re-sync it
 ## Architecture
 - `UltimateBankPlugin` is a thin shell. It holds the `FEATURES` list and forwards lifecycle and config changes to `core/FeatureManager`.
 - `core/`: shared infrastructure only (the `BankFeature` contract, feature manager, and later the shared bank-state cache, pricing, and widget helpers). Features depend on core, never on each other.
-- Cross-feature hand-offs go through core: e.g. `core/ExtraTabs` lets a feature publish a sectioned tab (Storage savings' storable items) that Sorted tabs shows as a `(ub)` tab.
 - `feature/<name>/`: one package per feature. The entry class implements `BankFeature`, is enabled by its own toggle, gets registered on the EventBus only while enabled, and must fully undo itself in `shutDown()`.
 - `UltimateBankConfig`: a single config group `ultimatebank`, with one `@ConfigSection` per feature. Key names are prefixed with the feature name (e.g. `bankValueShowHa`). Keys are permanent once released.
 - Persisting non-config data (saved setups, layouts): use `ConfigManager` with per-profile keys, or `Filepath` per AGENTS.md. Never write raw files.

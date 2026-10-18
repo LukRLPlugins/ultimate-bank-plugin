@@ -2,7 +2,6 @@ package com.ultimatebank.feature.storagesavings;
 
 import com.ultimatebank.UltimateBankConfig;
 import com.ultimatebank.core.BankFeature;
-import com.ultimatebank.core.ExtraTabs;
 import com.ultimatebank.feature.storagesavings.data.StorageLocation;
 import com.ultimatebank.feature.storagesavings.stash.StashTracker;
 import com.ultimatebank.feature.storagesavings.stash.StashUnit;
@@ -93,13 +92,6 @@ public class StorageSavingsFeature implements BankFeature
 	@Inject
 	private StashTracker stashTracker;
 
-	@Inject
-	private ExtraTabs extraTabs;
-
-	private final Runnable extraTabsListener = this::onExtraTabsChanged;
-	/** Whether Sorted tabs was showing published tabs when we last looked */
-	private boolean extraTabsDisplayed;
-
 	private StorageSavingsPanel panel;
 	private NavigationButton navButton;
 
@@ -128,8 +120,6 @@ public class StorageSavingsFeature implements BankFeature
 			.build();
 		syncPanel();
 
-		extraTabsDisplayed = extraTabs.isDisplayed();
-		extraTabs.addListener(extraTabsListener);
 		tagTab.sync();
 		stashTracker.load();
 
@@ -148,8 +138,6 @@ public class StorageSavingsFeature implements BankFeature
 		clientToolbar.removeNavigation(navButton);
 		navButton = null;
 		panel = null;
-		extraTabs.removeListener(extraTabsListener);
-		extraTabs.remove(StorageSavingsTagTab.TAG_NAME);
 		tagTab.remove();
 		state.set(StorageSavingsState.Results.EMPTY);
 		bankItems = null;
@@ -185,11 +173,7 @@ public class StorageSavingsFeature implements BankFeature
 				syncPanel();
 				return;
 			case "storageSavingsTagTab":
-				clientThread.invokeLater(() ->
-				{
-					tagTab.sync();
-					recompute();
-				});
+				clientThread.invokeLater(tagTab::sync);
 				return;
 			case "storageSavingsMarker":
 			case "storageSavingsMarkerColor":
@@ -337,7 +321,6 @@ public class StorageSavingsFeature implements BankFeature
 		if (bankItems == null)
 		{
 			publish(StorageSavingsState.Results.EMPTY);
-			publishTab(List.of());
 			return;
 		}
 
@@ -393,53 +376,18 @@ public class StorageSavingsFeature implements BankFeature
 			}
 		}
 
-		// Each location's items sorted by name, biggest location first
-		Map<Integer, String> names = new HashMap<>();
-		List<Map.Entry<String, List<Integer>>> locations = new ArrayList<>(itemsByLocation.entrySet());
-		for (Map.Entry<String, List<Integer>> location : locations)
-		{
-			location.getValue().forEach(id -> names.computeIfAbsent(id, k -> itemManager.getItemComposition(k).getName()));
-			location.getValue().sort(Comparator.comparing(names::get, String.CASE_INSENSITIVE_ORDER));
-		}
-		locations.sort(Comparator.comparingInt((Map.Entry<String, List<Integer>> e) -> e.getValue().size()).reversed()
-			.thenComparing(Map.Entry::getKey));
-
-		List<StorageSavingsState.LocationSavings> ranking = new ArrayList<>();
-		List<ExtraTabs.Section> sections = new ArrayList<>();
-		for (Map.Entry<String, List<Integer>> location : locations)
-		{
-			ranking.add(new StorageSavingsState.LocationSavings(location.getKey(), pohLocations.contains(location.getKey()),
-				location.getValue().stream().map(names::get).collect(Collectors.toList())));
-			sections.add(new ExtraTabs.Section(location.getKey(), List.copyOf(location.getValue())));
-		}
-		publishTab(sections);
+		List<StorageSavingsState.LocationSavings> ranking = itemsByLocation.entrySet().stream()
+			.map(e -> new StorageSavingsState.LocationSavings(e.getKey(), pohLocations.contains(e.getKey()),
+				e.getValue().stream()
+					.map(id -> itemManager.getItemComposition(id).getName())
+					.sorted(String.CASE_INSENSITIVE_ORDER)
+					.collect(Collectors.toList())))
+			.sorted(Comparator.comparingInt((StorageSavingsState.LocationSavings l) -> l.getItemNames().size()).reversed()
+				.thenComparing(StorageSavingsState.LocationSavings::getName))
+			.collect(Collectors.toList());
 
 		log.debug("{} storable items in bank across {} locations", flagged.size(), ranking.size());
 		publish(new StorageSavingsState.Results(true, Map.copyOf(flagged), ranking));
-	}
-
-	/**
-	 * Offers the storable items, one section per location, for Sorted tabs to show as "storable (ub)".
-	 */
-	private void publishTab(List<ExtraTabs.Section> sections)
-	{
-		if (config.storageSavingsTagTab())
-		{
-			extraTabs.publish(new ExtraTabs.Tab(StorageSavingsTagTab.TAG_NAME, StorageSavingsTagTab.ICON_ITEM_ID, sections));
-		}
-		else
-		{
-			extraTabs.remove(StorageSavingsTagTab.TAG_NAME);
-		}
-	}
-
-	private void onExtraTabsChanged()
-	{
-		if (extraTabs.isDisplayed() != extraTabsDisplayed)
-		{
-			extraTabsDisplayed = extraTabs.isDisplayed();
-			tagTab.sync();
-		}
 	}
 
 	private void publish(StorageSavingsState.Results results)

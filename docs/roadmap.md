@@ -8,7 +8,7 @@ All sources below are BSD-2-Clause (checked 2026-10-18). Re-check the license be
 
 | Feature | Status | Source plugin(s) | Repo |
 |---|---|---|---|
-| Sorted tabs | in-progress (phase 1/4) | Bank Skill Sorting (Frailrain) | https://github.com/Frailrain/Bank-Skill-Sorting |
+| Sorted tabs | parked | Bank Skill Sorting (Frailrain). Phase 1 built, parked on branch `sorted-tabs` | https://github.com/Frailrain/Bank-Skill-Sorting |
 | Tag layouts (Layout tools) | parked | Bank Tag Layouts (geheur). Built, works, parked on branch `layout-tools` | https://github.com/geheur/bank-tag-custom-layouts |
 | Inventory setups | idea | Inventory Setups (dillydill123) | https://github.com/dillydill123/inventory-setups |
 | Bank value | idea | Bank Value (spudjb) | https://github.com/spudjb/runelite-bank-value |
@@ -18,11 +18,10 @@ All sources below are BSD-2-Clause (checked 2026-10-18). Re-check the license be
 
 ## Feature notes
 
-### Sorted tabs
-- What the user actually wanted from "tag layouts": auto-sorted skill tabs with titled sections that they can
-  customize (add/remove items, sub-categories, titles). Design + phases: docs/features/sorted-tabs.md
-- Desired tweaks (decided 2026-10-18): start from Bank Skill Sorting's skill tabs; edits never overwritten;
-  edit in-bank and in a sidebar panel; two title levels; items in multiple tabs; variant-aware; dynamic slayer tab.
+### Sorted tabs (parked)
+- Auto-sorted skill tabs with titled sections, ported from Bank Skill Sorting (phase 1 of 4, plus `storable (ub)`).
+  Worked in-game, but the user didn't like the result (2026-10-18); **no tag tab layouts for now**. Parked on branch
+  `sorted-tabs` (design doc `docs/features/sorted-tabs.md` there, data converter `tools/convert_bss_tabs.py`).
 
 ### Tag layouts (parked)
 - Built as "Layout tools" (zigzag auto-layout, insert/remove rows) on branch `layout-tools`; works in-game but wasn't
