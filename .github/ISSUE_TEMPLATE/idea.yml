@@ -1,0 +1,23 @@
+name: Idea
+description: Jot down an idea. Rough is fine; it gets fleshed out when prototyped.
+title: "Idea: "
+labels: ["idea"]
+projects: ["LukRLPlugins/1"]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What
+      description: What should it do? A sentence or two is enough.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What's annoying today, or what would this make easier? (optional)
+  - type: input
+    id: inspiration
+    attributes:
+      label: Inspired by
+      description: A Plugin Hub plugin, link or screenshot that does something similar (optional)

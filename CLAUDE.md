@@ -45,8 +45,14 @@ All current source plugins are BSD-2-Clause (see `docs/roadmap.md`). When portin
 3. Record the source, author, and license in `docs/attribution.md`.
 Use the `/port-from-plugin` skill.
 
+## Workflow (ideas → prototypes → approval)
+- Board: https://github.com/orgs/LukRLPlugins/projects/1. Status: Ideas → Planned → In progress → Prototype ready → Done.
+- `/idea` captures, `/prototype` builds a draft PR on `proto/<issue>-<slug>`, `/approve` merges after the user tests
+  in-game (or applies feedback), `/status` summarizes. `.claude/scripts/board.sh` moves cards.
+- Work on `main` only for small fixes or when the user asks; features go through a prototype PR.
+
 ## Docs map (read on demand)
-- `docs/roadmap.md`: feature list, sources, status, and the user's desired tweaks. **Update status whenever a feature lands.**
+- `docs/roadmap.md`: feature decisions: sources, licenses, the user's desired tweaks. Status lives on the board.
 - `docs/runelite-api-notes.md`: bank widgets, events, and gotchas.
 - `docs/features/<name>.md`: design notes per feature (behaviour, config keys, events used, open questions).
 - `docs/plugin-hub-submission.md`: release checklist (also the `/hub-check` skill).

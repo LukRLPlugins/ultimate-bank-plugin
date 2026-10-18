@@ -1,5 +1,8 @@
 # Roadmap
 
+**Live status lives on the project board: https://github.com/orgs/LukRLPlugins/projects/1** (one issue per feature or
+idea). This file keeps the decisions behind each feature: sources, licenses and the user's desired tweaks.
+
 Status: `idea` → `researching` → `in-progress` → `testing` (awaiting in-game confirmation) → `done`.
 All sources below are BSD-2-Clause (checked 2026-10-18). Re-check the license before porting anything new.
 

@@ -17,7 +17,19 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:runelite.net)",
       "WebFetch(domain:static.runelite.net)",
-      "WebFetch(domain:oldschool.runescape.wiki)"
+      "WebFetch(domain:oldschool.runescape.wiki)",
+      "Bash(gh api user:*)",
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh project item-list:*)",
+      "Bash(gh project field-list:*)",
+      "Bash(gh project view:*)",
+      "Bash(bash .claude/scripts/board.sh list)",
+      "Bash(bash .claude/scripts/board.sh whoami)",
+      "Bash(git fetch:*)",
+      "Bash(git branch:*)"
     ],
     "deny": [
       "Bash(git push --force:*)"
