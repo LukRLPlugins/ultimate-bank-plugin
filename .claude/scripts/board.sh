@@ -17,7 +17,7 @@ whoami_check()
 	local login
 	login=$(gh api user --jq .login)
 	if [ "$login" != "$LUK" ]; then
-		echo "Active gh account is '$login', not $LUK. Run: gh auth switch -u $LUK" >&2
+		echo "gh is acting as '$login', not $LUK. Stop: run this from the LukRLPlugins folder (GH_CONFIG_DIR -> Luk-only config); never switch accounts to fix it." >&2
 		exit 1
 	fi
 }

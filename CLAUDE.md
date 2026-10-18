@@ -11,9 +11,14 @@ rules, kept verbatim from the example-plugin template; don't edit it, re-sync it
 - This project is published under the pseudonym **Luk** (GitHub org **LukRLPlugins**). Never write the maintainer's
   real name or personal email anywhere: code, copyright headers, docs, commit messages, issues, PRs.
 - Copyright lines for our code: `Copyright (c) 2026, Luk`. Commits use the repo-local git identity (already set).
-- Before any `git push` or `gh` command that writes (issues, PRs, project, repo), check
-  `gh api user --jq .login` is the Luk account; if not, `gh auth switch`. Push only to the `origin` remote
-  (`git@github-luk:...`, the Luk SSH key), never via the personal account.
+- Identity is set **by folder**: every repo under the local `LukRLPlugins` folder gets the Luk git identity and SSH
+  key (global `includeIf`), and gh uses a Luk-only login (`GH_CONFIG_DIR`, set in `.claude/settings.local.json`
+  and the shell profiles). Outside that folder only the personal identity exists, so the two can't cross.
+- Before any `git push` or `gh` command that writes (issues, PRs, project, repo), run
+  `bash .claude/scripts/board.sh whoami`. If it isn't Luk-Plugins, **stop and tell the user**. Never "fix" it by
+  logging in or switching accounts yourself.
+- Never commit machine paths (home folder, Windows username); machine-specific settings go in gitignored
+  `.claude/settings.local.json`.
 
 ## Commands
 - Build + tests: `./gradlew build`
