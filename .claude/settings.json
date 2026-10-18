@@ -10,7 +10,6 @@
       "Bash(git add:*)",
       "Bash(git clone --depth 1:*)",
       "PowerShell(./gradlew:*)",
-      "PowerShell(.\gradlew:*)",
       "PowerShell(git status:*)",
       "PowerShell(git diff:*)",
       "PowerShell(git log:*)",
