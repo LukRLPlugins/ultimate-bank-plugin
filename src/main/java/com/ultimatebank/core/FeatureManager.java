@@ -48,6 +48,7 @@ public class FeatureManager
 	 */
 	public void sync()
 	{
+		log.debug("Syncing {} features ({} running)", features.size(), running.size());
 		for (BankFeature feature : features)
 		{
 			boolean enabled = feature.isEnabled(config);

@@ -1,0 +1,139 @@
+package com.ultimatebank.feature.storagesavings;
+
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.HashSet;
+import java.util.Set;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
+import net.runelite.client.ui.ColorScheme;
+import net.runelite.client.ui.FontManager;
+import net.runelite.client.ui.PluginPanel;
+
+/**
+ * Ranks storage locations by how many bank slots they would free. Click a location to list its items.
+ * Must only be touched on the Swing thread.
+ */
+class StorageSavingsPanel extends PluginPanel
+{
+	private final JLabel summary = new JLabel();
+	private final JPanel ranking = new JPanel();
+	/** Locations the user has expanded, kept across updates */
+	private final Set<String> expanded = new HashSet<>();
+
+	private StorageSavingsState.Results results = StorageSavingsState.Results.EMPTY;
+
+	StorageSavingsPanel()
+	{
+		setLayout(new BorderLayout(0, 8));
+		setBorder(new EmptyBorder(10, 10, 10, 10));
+
+		JPanel header = new JPanel(new BorderLayout(0, 4));
+		JLabel title = new JLabel("Storage savings");
+		title.setFont(FontManager.getRunescapeBoldFont());
+		title.setForeground(Color.WHITE);
+		header.add(title, BorderLayout.NORTH);
+		summary.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+		header.add(summary, BorderLayout.SOUTH);
+		add(header, BorderLayout.NORTH);
+
+		ranking.setLayout(new BoxLayout(ranking, BoxLayout.Y_AXIS));
+		add(ranking, BorderLayout.CENTER);
+
+		rebuild();
+	}
+
+	void update(StorageSavingsState.Results results)
+	{
+		this.results = results;
+		rebuild();
+	}
+
+	private void rebuild()
+	{
+		ranking.removeAll();
+
+		if (!results.isBankSeen())
+		{
+			summary.setText("<html>Open your bank to scan it.</html>");
+		}
+		else if (results.getFlagged().isEmpty())
+		{
+			summary.setText("<html>Nothing in your bank could be stored elsewhere.</html>");
+		}
+		else
+		{
+			int count = results.getFlagged().size();
+			summary.setText("<html>" + count + (count == 1 ? " item" : " items")
+				+ " could be stored elsewhere. Click a location to see its items.</html>");
+			for (StorageSavingsState.LocationSavings location : results.getRanking())
+			{
+				ranking.add(row(location));
+			}
+		}
+
+		ranking.revalidate();
+		ranking.repaint();
+	}
+
+	private JPanel row(StorageSavingsState.LocationSavings location)
+	{
+		JPanel row = new JPanel(new BorderLayout());
+		row.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		row.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createMatteBorder(0, 0, 4, 0, ColorScheme.DARK_GRAY_COLOR),
+			new EmptyBorder(6, 8, 6, 8)));
+
+		int slots = location.getItemNames().size();
+		JLabel name = new JLabel(location.getName());
+		name.setForeground(location.isPoh() ? ColorScheme.BRAND_ORANGE : Color.WHITE);
+		JLabel count = new JLabel(slots + (slots == 1 ? " slot" : " slots"));
+		count.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+
+		JPanel heading = new JPanel(new BorderLayout());
+		heading.setOpaque(false);
+		heading.add(name, BorderLayout.WEST);
+		heading.add(count, BorderLayout.EAST);
+		row.add(heading, BorderLayout.NORTH);
+
+		boolean open = expanded.contains(location.getName());
+		if (open)
+		{
+			JPanel items = new JPanel();
+			items.setLayout(new BoxLayout(items, BoxLayout.Y_AXIS));
+			items.setOpaque(false);
+			items.setBorder(new EmptyBorder(4, 6, 0, 0));
+			for (String itemName : location.getItemNames())
+			{
+				JLabel item = new JLabel(itemName);
+				item.setFont(FontManager.getRunescapeSmallFont());
+				item.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+				items.add(item);
+			}
+			row.add(items, BorderLayout.CENTER);
+		}
+
+		row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		row.addMouseListener(new MouseAdapter()
+		{
+			@Override
+			public void mouseClicked(MouseEvent e)
+			{
+				if (!expanded.remove(location.getName()))
+				{
+					expanded.add(location.getName());
+				}
+				rebuild();
+			}
+		});
+		row.setToolTipText(location.isPoh() ? "Player-owned house storage" : null);
+		row.setAlignmentX(LEFT_ALIGNMENT);
+		return row;
+	}
+}
