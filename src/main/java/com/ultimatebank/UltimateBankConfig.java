@@ -5,6 +5,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
 
 /**
  * One {@code @ConfigSection} per feature. Each section starts with an enable toggle,
@@ -271,6 +272,78 @@ public interface UltimateBankConfig extends Config
 
 	@ConfigItem(keyName = "storageSavingsMysteriousStranger", name = "Mysterious stranger", description = "Hallowed Sepulchre items", section = storageSavingsLocationsSection, position = 20)
 	default boolean storageSavingsMysteriousStranger()
+	{
+		return true;
+	}
+
+	// ---- Layout tools ----
+
+	@ConfigSection(
+		name = "Layout tools",
+		description = "Extra tools for core bank tag layouts: zigzag auto-layout and row editing",
+		position = 2
+	)
+	String layoutToolsSection = "layoutToolsSection";
+
+	@ConfigItem(
+		keyName = "layoutToolsEnabled",
+		name = "Enable",
+		description = "Add extra tools to bank tag layouts (requires the Bank Tags plugin)",
+		section = layoutToolsSection,
+		position = 0
+	)
+	default boolean layoutToolsEnabled()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "layoutToolsZigzag",
+		name = "Zigzag auto-layout",
+		description = "Add a Zigzag style to a tag tab's 'Auto layout' right-click options. It lays out your gear, then your inventory, "
+			+ "zigzagging down and up each column of a pair of rows.",
+		section = layoutToolsSection,
+		position = 1
+	)
+	default boolean layoutToolsZigzag()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "layoutToolsZigzagDuplicateLimit",
+		name = "Zigzag: duplicate limit",
+		description = "Inventory items repeated up to this many times in a row get one bank slot each (e.g. 4 prayer potions = 4 slots). "
+			+ "Longer runs (e.g. 20 sharks) get a single slot. 0 = never duplicate.",
+		section = layoutToolsSection,
+		position = 2
+	)
+	@Range(max = 28)
+	default int layoutToolsZigzagDuplicateLimit()
+	{
+		return 4;
+	}
+
+	@ConfigItem(
+		keyName = "layoutToolsZigzagRunePouch",
+		name = "Zigzag: rune pouch runes",
+		description = "Put the runes in your rune pouch on their own row",
+		section = layoutToolsSection,
+		position = 3
+	)
+	default boolean layoutToolsZigzagRunePouch()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "layoutToolsRowMenus",
+		name = "Insert/remove row menus",
+		description = "Shift-right-click empty space in a laid-out tag tab to insert an empty row or remove an empty row",
+		section = layoutToolsSection,
+		position = 4
+	)
+	default boolean layoutToolsRowMenus()
 	{
 		return true;
 	}

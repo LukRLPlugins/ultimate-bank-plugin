@@ -39,6 +39,16 @@ Current RuneLite client version at setup: **1.13.2**.
   See `StashTracker` for where s1..s3 come from.
 - Menus: use `client.getMenu().createMenuEntry(i)` (not the deprecated `client.createMenuEntry`) with `MenuAction.RUNELITE`.
 
+- **Auto layouts:** `LayoutManager.registerAutoLayout(plugin, name, AutoLayout)` adds "Auto layout: <name>" to a
+  laid-out tag tab's right-click menu. Core calls `generateLayout(previous)` on the client thread and handles Keep/Undo.
+  Registering a name that's already taken **throws** `IllegalArgumentException`, and `unregisterAutoLayout` is by name
+  only, so pick a unique name. Core's own "Default" style is the equipment-shape + inventory-grid arrangement.
+- `bankTagsService.getActiveLayout()` is non-null only when the open tab has a layout. To change it, build a new
+  `Layout(tag, int[])`, `layoutManager.saveLayout(...)`, then `bankTagsService.openBankTag(tag, OPTION_ALLOW_MODIFICATIONS)`
+  to redraw.
+- Rune pouch runes: varbits `RUNE_POUCH_TYPE_1..4` → `client.getEnum(EnumID.RUNEPOUCH_RUNE).getIntValue(rune)` gives
+  the item ID. Pouch items are `ItemID.BH_RUNE_POUCH` / `DIVINE_RUNE_POUCH` (+ `ItemVariationMapping` variants).
+
 ## Tooling gotchas
 - The compile hook runs after **every** edit, so when an edit needs new imports, add the imports first or in the
   same edit. Otherwise you get a spurious "cannot find symbol" in between.
