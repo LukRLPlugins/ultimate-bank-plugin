@@ -6,7 +6,8 @@ description: Build and launch the RuneLite developer client with Ultimate Bank l
 # Run the dev client
 
 1. `./gradlew build`. Fix any failures first.
-2. Launch in the background: `./gradlew run` (it starts RuneLite with `--developer-mode --debug`). Logs also go to `~/.runelite/logs/client.log`.
+2. Launch in the background: `./gradlew run` (it starts RuneLite with `--developer-mode --debug --profile ultimate-bank-dev`). The dedicated `ultimate-bank-dev` config profile keeps dev runs away from the user's real RuneLite settings. Never change their other profiles. Logs also go to `~/.runelite/logs/client.log`.
+   - Close any dev client that's still open first (two clients on one account kick each other). Stopping the Gradle task doesn't close the game window; ask the user to close it.
 3. Tell the user:
    - With a Jagex account, the dev client needs credentials exported once. See https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts
    - Where to find the plugin: Configuration › "Ultimate Bank"

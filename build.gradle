@@ -39,7 +39,8 @@ tasks.register('run', JavaExec) {
 	mainClass = pluginMainClass
 
 	jvmArgs "-ea"
-	args "--developer-mode", "--debug"
+	// Separate RuneLite config profile so dev runs never touch the user's real settings
+	args "--developer-mode", "--debug", "--profile", "ultimate-bank-dev"
 }
 
 tasks.register('shadowJar', Jar) {
