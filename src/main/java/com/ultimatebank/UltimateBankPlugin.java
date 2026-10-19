@@ -5,7 +5,6 @@ import com.ultimatebank.core.BankFeature;
 import com.ultimatebank.core.FeatureManager;
 import com.ultimatebank.core.snapshots.StorageSnapshots;
 import com.ultimatebank.feature.storagesavings.StorageSavingsFeature;
-import com.ultimatebank.feature.wheresmystuff.WheresMyStuffFeature;
 import java.util.List;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -33,8 +32,8 @@ public class UltimateBankPlugin extends Plugin
 	 * Every feature in the plugin. Add new features here (order = start order).
 	 */
 	private static final List<Class<? extends BankFeature>> FEATURES = List.of(
-		StorageSavingsFeature.class,
-		WheresMyStuffFeature.class
+		StorageSavingsFeature.class
+		// WheresMyStuffFeature: search panel hidden until it's ready for release (code kept)
 	);
 
 	@Inject

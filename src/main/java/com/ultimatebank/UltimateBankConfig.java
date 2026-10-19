@@ -304,19 +304,14 @@ public interface UltimateBankConfig extends Config
 
 	// ---- Where's my stuff ----
 
-	@ConfigSection(
-		name = "Where's my stuff",
-		description = "Search your bank and POH storage, with values and recent changes",
-		position = 2,
-		closedByDefault = true
-	)
-	String wheresMyStuffSection = "wheresMyStuffSection";
+	// Hidden until the search panel is ready (WheresMyStuffFeature isn't registered); the snapshot count still
+	// applies to core/snapshots, which Storage savings uses.
 
 	@ConfigItem(
 		keyName = "wheresMyStuffEnabled",
 		name = "Enable",
 		description = "Add a sidebar panel to search your bank and POH storage (open each once so it's recorded)",
-		section = wheresMyStuffSection,
+		hidden = true,
 		position = 0
 	)
 	default boolean wheresMyStuffEnabled()
@@ -328,7 +323,7 @@ public interface UltimateBankConfig extends Config
 		keyName = "wheresMyStuffSnapshotCount",
 		name = "Snapshots kept",
 		description = "How many past snapshots of each location to keep, for 'recently changed'",
-		section = wheresMyStuffSection,
+		hidden = true,
 		position = 1
 	)
 	@Range(min = 2, max = 20)
@@ -341,7 +336,7 @@ public interface UltimateBankConfig extends Config
 		keyName = "wheresMyStuffWarnHours",
 		name = "Old after (hours)",
 		description = "Show a location's snapshot in orange once it's this old",
-		section = wheresMyStuffSection,
+		hidden = true,
 		position = 2
 	)
 	default int wheresMyStuffWarnHours()
@@ -353,7 +348,7 @@ public interface UltimateBankConfig extends Config
 		keyName = "wheresMyStuffStaleHours",
 		name = "Stale after (hours)",
 		description = "Show a location's snapshot in red once it's this old",
-		section = wheresMyStuffSection,
+		hidden = true,
 		position = 3
 	)
 	default int wheresMyStuffStaleHours()

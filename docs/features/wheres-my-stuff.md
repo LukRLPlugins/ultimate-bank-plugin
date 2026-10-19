@@ -1,7 +1,8 @@
 # Where's my stuff
 
 - **Package:** `com.ultimatebank.feature.wheresmystuff` (+ shared `core/snapshots`)
-- **Status:** see the board (issue #15)
+- **Status:** search panel **hidden** (not ready for release, see #21); snapshots in `core/snapshots` stay on for
+  Storage savings
 - **Sources:** Where's My Stuff / Bank POH Search by Wozak-1 (https://github.com/Wozak-1/bank-poh-searcher, Hub
   commit `95ec7f4`), BSD-2. See docs/attribution.md.
 
