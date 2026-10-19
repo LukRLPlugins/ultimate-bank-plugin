@@ -205,6 +205,10 @@ public class StorageSavingsFeature implements BankFeature
 				return;
 			case "storageSavingsMarker":
 			case "storageSavingsMarkerColor":
+			case "storageSavingsMarkerStyle":
+			case "storageSavingsMarkerCorner":
+			case "storageSavingsMarkerSize":
+			case "storageSavingsMarkerThickness":
 				// read live by the overlay
 				return;
 			case "storageSavingsStash":
