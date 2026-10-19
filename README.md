@@ -3,10 +3,14 @@
 A bank toolkit for [RuneLite](https://runelite.net). It finds the items in your bank that could live somewhere else,
 and shows which storage upgrades would free up the most bank space.
 
-<!-- Screenshot: bank with storable markers + the Storage savings panel -->
+<p>
+  <img src="docs/images/bank-markers.png" alt="Bank items with storable markers" height="420">
+  <img src="docs/images/storage-panel.png" alt="Storage savings panel ranking storage by bank slots freed" height="420">
+</p>
 
 ## Storage savings
-- **Storable markers:** a small corner marker on every banked item that could be stored elsewhere. Hover it to see
+- **Storable markers:** every banked item that could be stored elsewhere is marked (corner triangle, item outline or
+  box outline; colour, size and corner are up to you). Hover it to see
   where: POH costume room (treasure chest, fancy dress box, magic wardrobe, armour case, cape rack, toy box),
   bookcase, spice rack, pet house, tackle box, seed vault, tool leprechaun, huntsman's kit, forestry kit, steel key
   ring, master scroll book, fossil storage, Nightmare Zone, and more. Tooltips also say how many copies a POH storage
@@ -22,7 +26,10 @@ and shows which storage upgrades would free up the most bank space.
 - **Ignore list:** shift-right-click a marked item › *Ignore storable*, or list names, IDs or `*` wildcards in config.
   Best-in-slot items (skillcapes, max cape, Ancestral, ...) are never flagged unless you turn that off.
 
-<!-- Screenshot: the grouped storable tab -->
+<p>
+  <img src="docs/images/storable-tab.png" alt="The storable tag tab, grouped by container" height="420">
+  <img src="docs/images/poh-tiers.png" alt="POH tier settings">
+</p>
 
 Find everything under **Configuration › Ultimate Bank**. Each part can be turned off on its own.
 
