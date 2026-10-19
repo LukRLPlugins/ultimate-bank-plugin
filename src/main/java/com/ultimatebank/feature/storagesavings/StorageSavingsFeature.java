@@ -2,6 +2,9 @@ package com.ultimatebank.feature.storagesavings;
 
 import com.ultimatebank.UltimateBankConfig;
 import com.ultimatebank.core.BankFeature;
+import com.ultimatebank.core.snapshots.Snapshot;
+import com.ultimatebank.core.snapshots.SnapshotLocation;
+import com.ultimatebank.core.snapshots.StorageSnapshots;
 import com.ultimatebank.feature.storagesavings.data.StorageLocation;
 import com.ultimatebank.feature.storagesavings.stash.StashTracker;
 import com.ultimatebank.feature.storagesavings.stash.StashUnit;
@@ -98,8 +101,15 @@ public class StorageSavingsFeature implements BankFeature
 	private StorageSavingsPanel panel;
 	private NavigationButton navButton;
 
+	@Inject
+	private StorageSnapshots snapshots;
+
+	private final Runnable snapshotListener = this::onSnapshotsChanged;
+
 	/** Non-placeholder item IDs in the bank, or null until the bank has been seen */
 	private Set<Integer> bankItems;
+	/** When the saved bank snapshot behind {@link #bankItems} was taken, or 0 if the bank was seen live */
+	private long bankSnapshotAt;
 	/** Every storable item's ID by normalized name, built on first use */
 	private Map<String, Set<Integer>> namesToIds;
 
@@ -127,6 +137,7 @@ public class StorageSavingsFeature implements BankFeature
 		tagTab.sync();
 		stashTracker.load();
 
+		snapshots.addListener(snapshotListener);
 		ItemContainer bank = client.getItemContainer(InventoryID.BANK);
 		if (bank != null)
 		{
@@ -143,9 +154,11 @@ public class StorageSavingsFeature implements BankFeature
 		clientToolbar.removeNavigation(navButton);
 		navButton = null;
 		panel = null;
+		snapshots.removeListener(snapshotListener);
 		tagTab.remove();
 		state.set(StorageSavingsState.Results.EMPTY);
 		bankItems = null;
+		bankSnapshotAt = 0;
 	}
 
 	@Subscribe
@@ -311,7 +324,9 @@ public class StorageSavingsFeature implements BankFeature
 			items.add(itemId);
 		}
 
-		if (items.equals(bankItems))
+		boolean wasSnapshot = bankSnapshotAt != 0;
+		bankSnapshotAt = 0;
+		if (items.equals(bankItems) && !wasSnapshot)
 		{
 			return false;
 		}
@@ -320,10 +335,61 @@ public class StorageSavingsFeature implements BankFeature
 	}
 
 	/**
+	 * A bank or POH snapshot was recorded, or the account changed.
+	 */
+	private void onSnapshotsChanged()
+	{
+		recompute();
+	}
+
+	/**
+	 * Uses the saved bank snapshot until the bank is seen live this session, if enabled.
+	 */
+	private void useBankSnapshotIfNeeded()
+	{
+		boolean live = bankItems != null && bankSnapshotAt == 0;
+		if (live)
+		{
+			return;
+		}
+
+		Snapshot bank = config.storageSavingsUseSnapshots() ? snapshots.latest(SnapshotLocation.BANK) : null;
+		if (bank == null)
+		{
+			bankItems = null;
+			bankSnapshotAt = 0;
+			return;
+		}
+
+		Set<Integer> items = new HashSet<>();
+		for (int itemId : bank.getQuantities().keySet())
+		{
+			if (itemManager.getItemComposition(itemId).getPlaceholderTemplateId() == -1)
+			{
+				items.add(itemId);
+			}
+		}
+		bankItems = items;
+		bankSnapshotAt = bank.getTakenAt();
+	}
+
+	/**
+	 * @return whether the location's POH snapshot shows it already holds the item (so a banked copy can't go there)
+	 */
+	private boolean alreadyStored(StorageLocation location, int itemId)
+	{
+		SnapshotLocation snapshotLocation = location.getSnapshotLocation();
+		Snapshot stored = snapshotLocation == null || !config.storageSavingsUseSnapshots()
+			? null : snapshots.latest(snapshotLocation);
+		return stored != null && stored.getQuantities().containsKey(itemId);
+	}
+
+	/**
 	 * Recalculates flagged items and the ranking from the last seen bank. Must be called on the client thread.
 	 */
 	private void recompute()
 	{
+		useBankSnapshotIfNeeded();
 		if (bankItems == null)
 		{
 			publish(StorageSavingsState.Results.EMPTY);
@@ -338,6 +404,7 @@ public class StorageSavingsFeature implements BankFeature
 		Map<Integer, List<String>> flagged = new HashMap<>();
 		Map<String, List<Integer>> itemsByLocation = new LinkedHashMap<>();
 		Set<String> pohLocations = new HashSet<>();
+		Set<Integer> skippedAsStored = new HashSet<>();
 
 		for (int itemId : bankItems)
 		{
@@ -349,7 +416,11 @@ public class StorageSavingsFeature implements BankFeature
 			List<String> where = new ArrayList<>();
 			for (StorageLocation location : StorageLocation.forItem(itemId))
 			{
-				if (location.isEnabled(config))
+				if (location.isEnabled(config) && alreadyStored(location, itemId))
+				{
+					skippedAsStored.add(itemId);
+				}
+				else if (location.isEnabled(config))
 				{
 					where.add(location.getDisplayName());
 					itemsByLocation.computeIfAbsent(location.getDisplayName(), k -> new ArrayList<>()).add(itemId);
@@ -397,7 +468,7 @@ public class StorageSavingsFeature implements BankFeature
 			.collect(Collectors.toList());
 
 		log.debug("{} storable items in bank across {} locations", flagged.size(), ranking.size());
-		publish(new StorageSavingsState.Results(true, Map.copyOf(flagged), ranking));
+		publish(new StorageSavingsState.Results(true, bankSnapshotAt, skippedAsStored.size(), Map.copyOf(flagged), ranking));
 	}
 
 	private void publish(StorageSavingsState.Results results)

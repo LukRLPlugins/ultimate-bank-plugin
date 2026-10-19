@@ -36,10 +36,14 @@ class StorageSavingsState
 	@Value
 	static class Results
 	{
-		static final Results EMPTY = new Results(false, Collections.emptyMap(), Collections.emptyList());
+		static final Results EMPTY = new Results(false, 0, 0, Collections.emptyMap(), Collections.emptyList());
 
-		/** Whether the bank has been seen this session; nothing can be flagged before then */
+		/** Whether bank contents are known (seen this session, or from a saved snapshot) */
 		boolean bankSeen;
+		/** When the saved bank snapshot in use was taken, or 0 if the bank was seen live this session */
+		long bankSnapshotAt;
+		/** Banked items not suggested because a POH storage already holds them */
+		int alreadyStored;
 		/** Location names by flagged item ID */
 		Map<Integer, List<String>> flagged;
 		/** Storage locations by bank slots they would free, most first */

@@ -1,6 +1,7 @@
 package com.ultimatebank.feature.storagesavings.data;
 
 import com.ultimatebank.UltimateBankConfig;
+import com.ultimatebank.core.snapshots.SnapshotLocation;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -80,6 +81,32 @@ public enum StorageLocation
 	public boolean isEnabled(UltimateBankConfig config)
 	{
 		return enabled.test(config);
+	}
+
+	/**
+	 * @return the snapshot that records what this location already holds, or null if it isn't snapshotted
+	 */
+	public SnapshotLocation getSnapshotLocation()
+	{
+		switch (this)
+		{
+			case TREASURE_CHEST:
+				return SnapshotLocation.TREASURE_CHEST;
+			case FANCY_DRESS_BOX:
+				return SnapshotLocation.FANCY_DRESS_BOX;
+			case MAGIC_WARDROBE:
+				return SnapshotLocation.MAGIC_WARDROBE;
+			case ARMOUR_CASE:
+				return SnapshotLocation.ARMOUR_CASE;
+			case CAPE_RACK:
+				return SnapshotLocation.CAPE_RACK;
+			case TOY_BOX:
+				return SnapshotLocation.TOY_BOX;
+			case BOOKCASE:
+				return SnapshotLocation.BOOKCASE;
+			default:
+				return null;
+		}
 	}
 
 	/**

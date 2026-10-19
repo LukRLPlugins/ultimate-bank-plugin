@@ -3,12 +3,15 @@ package com.ultimatebank;
 import com.google.inject.Provides;
 import com.ultimatebank.core.BankFeature;
 import com.ultimatebank.core.FeatureManager;
+import com.ultimatebank.core.snapshots.StorageSnapshots;
 import com.ultimatebank.feature.storagesavings.StorageSavingsFeature;
+import com.ultimatebank.feature.wheresmystuff.WheresMyStuffFeature;
 import java.util.List;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.eventbus.EventBus;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.plugins.Plugin;
@@ -30,7 +33,8 @@ public class UltimateBankPlugin extends Plugin
 	 * Every feature in the plugin. Add new features here (order = start order).
 	 */
 	private static final List<Class<? extends BankFeature>> FEATURES = List.of(
-		StorageSavingsFeature.class
+		StorageSavingsFeature.class,
+		WheresMyStuffFeature.class
 	);
 
 	@Inject
@@ -39,9 +43,19 @@ public class UltimateBankPlugin extends Plugin
 	@Inject
 	private FeatureManager featureManager;
 
+	@Inject
+	private EventBus eventBus;
+
+	@Inject
+	private StorageSnapshots storageSnapshots;
+
 	@Override
 	protected void startUp()
 	{
+		// Shared services run whatever features are on
+		eventBus.register(storageSnapshots);
+		clientThread.invokeLater(storageSnapshots::load);
+
 		featureManager.load(FEATURES);
 		log.debug("Loaded {} features", FEATURES.size());
 		clientThread.invokeLater(featureManager::sync);
@@ -51,6 +65,7 @@ public class UltimateBankPlugin extends Plugin
 	protected void shutDown()
 	{
 		clientThread.invokeLater(featureManager::stopAll);
+		eventBus.unregister(storageSnapshots);
 	}
 
 	@Subscribe

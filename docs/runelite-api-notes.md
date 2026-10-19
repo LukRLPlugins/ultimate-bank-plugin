@@ -47,6 +47,12 @@ Current RuneLite client version at setup: **1.13.2**.
 - `ItemManager.canonicalize` turns noted items and placeholders into the real item; `ItemVariationMapping.map` gives
   the variation base (degraded/charged/ornament variants).
 
+- **POH costume room storage** (`InterfaceID.POH_COSTUMES`, side panel `POH_COSTUMES_SIDE`): items fill in ~2 ticks
+  after `WidgetLoaded`. Stored items are the widgets under `PohCostumes.ITEMS` with opacity 0 (unstored ones are
+  faded). Which storage it is only shows in the interface text ("Toy box", "Magic wardrobe", ...). `PohCostumes.TIER`
+  probably names the furniture tier.
+- Bank placeholders have quantity 0 in the bank `ItemContainer`.
+
 ## Tooling gotchas
 - The compile hook runs after **every** edit, so when an edit needs new imports, add the imports first or in the
   same edit. Otherwise you get a spurious "cannot find symbol" in between.
