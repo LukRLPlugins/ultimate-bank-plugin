@@ -1,16 +1,22 @@
 ---
 name: run-client
-description: Build and launch the RuneLite developer client with Ultimate Bank loaded so the user can test in-game.
+description: Build and launch the RuneLite developer client with Ultimate Bank loaded so the user can test in-game. Optional argument picks the saved account to log in with (e.g. /run-client 2).
+argument-hint: [account name, e.g. 1, 2, main]
 ---
 
 # Run the dev client
 
-1. `./gradlew build`. Fix any failures first.
-2. Launch in the background: `./gradlew run` (it starts RuneLite with `--developer-mode --debug --profile ultimate-bank-dev`). The dedicated `ultimate-bank-dev` config profile keeps dev runs away from the user's real RuneLite settings. Never change their other profiles. Logs also go to `~/.runelite/logs/client.log`.
+1. **Account** ($ARGUMENTS): if an account name was given, run `bash .claude/scripts/use-credentials.sh <name>` first;
+   if it fails, show the user the saved accounts it lists and stop. With no argument, the dev client uses whichever
+   account was used last. Never read, print or commit credentials files (they hold login tokens).
+   To save an account: log in via the Jagex launcher steps (link below), then copy
+   `~/.runelite/credentials.properties` to `~/.runelite/credentials-<name>.properties`.
+2. `./gradlew build`. Fix any failures first.
+3. Launch in the background: `./gradlew run` (it starts RuneLite with `--developer-mode --debug --profile ultimate-bank-dev`). The dedicated `ultimate-bank-dev` config profile keeps dev runs away from the user's real RuneLite settings. Never change their other profiles. Logs also go to `~/.runelite/logs/client.log`.
    - Close any dev client that's still open first (two clients on one account kick each other). Stopping the Gradle task doesn't close the game window; ask the user to close it.
-3. Tell the user:
+4. Tell the user (including which account it logs in as):
    - With a Jagex account, the dev client needs credentials exported once. See https://github.com/runelite/runelite/wiki/Using-Jagex-Accounts
    - Where to find the plugin: Configuration › "Ultimate Bank"
    - **What to test**: the checklist from the relevant `docs/features/<name>.md`
-4. **Never** interact with the game client yourself (no screenshots + clicks, no input automation). That violates Jagex's rules (AGENTS.md › Testing).
-5. If the user reports a problem, read the `com.ultimatebank` lines in `~/.runelite/logs/client.log` first.
+5. **Never** interact with the game client yourself (no screenshots + clicks, no input automation). That violates Jagex's rules (AGENTS.md › Testing).
+6. If the user reports a problem, read the `com.ultimatebank` lines in `~/.runelite/logs/client.log` first.

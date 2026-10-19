@@ -29,7 +29,8 @@
       "Bash(bash .claude/scripts/board.sh list)",
       "Bash(bash .claude/scripts/board.sh whoami)",
       "Bash(git fetch:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(bash .claude/scripts/use-credentials.sh:*)"
     ],
     "deny": [
       "Bash(git push --force:*)"
