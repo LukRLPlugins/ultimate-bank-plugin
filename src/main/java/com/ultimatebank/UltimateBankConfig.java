@@ -98,8 +98,9 @@ public interface UltimateBankConfig extends Config
 	@ConfigItem(
 		keyName = "storageSavingsUseSnapshots",
 		name = "Use saved snapshots",
-		description = "Before you open the bank, work from the bank as it was last seen. Don't suggest storing an item "
-			+ "that a POH storage already holds (open each POH storage once so it's recorded).",
+		description = "Remember your bank and POH storage contents. Before you open the bank, work from the bank as it was "
+			+ "last seen; show how many copies a POH storage already holds; and count sets already stored toward a "
+			+ "storage's tier capacity. Open each POH storage once so it's recorded.",
 		section = storageSavingsSection,
 		position = 5
 	)
