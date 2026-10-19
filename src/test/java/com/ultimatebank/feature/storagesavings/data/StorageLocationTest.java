@@ -30,6 +30,16 @@ public class StorageLocationTest
 	}
 
 	@Test
+	public void wikiItemsFillTheGaps()
+	{
+		// Missing from the hand-kept lists before the OSRS Wiki data was merged in (#20)
+		assertTrue(StorageLocation.forItem(ItemID.ABYSSAL_LANTERN).contains(StorageLocation.MAGIC_WARDROBE));
+		assertTrue(StorageLocation.forItem(ItemID.ABYSSAL_LANTERN_MAGIC).contains(StorageLocation.MAGIC_WARDROBE));
+		// And nothing from the hand-kept lists was dropped
+		assertTrue(StorageLocation.forItem(ItemID.TRAIL_SARADOMIN_CLOAK).contains(StorageLocation.TREASURE_CHEST));
+	}
+
+	@Test
 	public void bisItemsAreStorable()
 	{
 		assertTrue(StorageLocation.isBis(ItemID.SKILLCAPE_MAX));

@@ -25,8 +25,8 @@ After the bank has been opened this session:
   get the sets that free the most bank slots; a set already stored keeps its slot; cape rack limits only capes of
   accomplishment; treasure chest takes rewards up to its clue tier. Panel rows show the tier and "+N with <next>"
   (also for storages that hold nothing yet). Unknown tier = no limit, "tier unknown: visit your costume room".
-  Sets/pieces come from the OSRS Wiki via `tools/convert_wiki_storage_sets.py` → `storage-sets.json`, matched to our
-  item IDs by name at runtime.
+  Sets/pieces and their item IDs come from the OSRS Wiki via `tools/convert_wiki_storage_sets.py` → `storage-sets.json`;
+  the same run generates `data/WikiStorageItems.java`, merged into the five costume room storages' item lists (#20).
 - **Grouped storable tab** (default on): the `storable` tab gets a core layout with one group per container, a title
   and divider line above each (drawn by `StorableTitlesOverlay`), ordered most bank slots freed first. An item that
   fits several containers appears in each group. Turning it off removes only the layout we created.

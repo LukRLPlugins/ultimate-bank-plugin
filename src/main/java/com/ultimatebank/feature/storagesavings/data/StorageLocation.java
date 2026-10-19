@@ -2,6 +2,7 @@ package com.ultimatebank.feature.storagesavings.data;
 
 import com.ultimatebank.UltimateBankConfig;
 import com.ultimatebank.core.snapshots.SnapshotLocation;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -9,19 +10,21 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import lombok.Getter;
 
 /**
- * Places other than the bank that can hold items. Item lists are ported from Wasted Bank Space
- * (see docs/attribution.md); add new items to the matching {@code *Items} class.
+ * Places other than the bank that can hold items. Item lists are ported from Wasted Bank Space, and the costume room
+ * storages also get every item the OSRS Wiki lists ({@link WikiStorageItems}, generated; see docs/attribution.md).
+ * Add new items to the matching {@code *Items} class, or regenerate the wiki data.
  */
 public enum StorageLocation
 {
-	TREASURE_CHEST("POH treasure chest", true, TreasureChestItems.ITEMS, null, UltimateBankConfig::storageSavingsTreasureChest),
-	FANCY_DRESS_BOX("POH fancy dress box", true, FancyDressBoxItems.ITEMS, null, UltimateBankConfig::storageSavingsFancyDressBox),
-	MAGIC_WARDROBE("POH magic wardrobe", true, MagicWardrobeItems.ITEMS, MagicWardrobeItems.BIS, UltimateBankConfig::storageSavingsMagicWardrobe),
-	ARMOUR_CASE("POH armour case", true, ArmourCaseItems.ITEMS, ArmourCaseItems.BIS, UltimateBankConfig::storageSavingsArmourCase),
-	CAPE_RACK("POH cape rack", true, CapeRackItems.ITEMS, CapeRackItems.BIS, UltimateBankConfig::storageSavingsCapeRack),
+	TREASURE_CHEST("POH treasure chest", true, merge(TreasureChestItems.ITEMS, WikiStorageItems.TREASURE_CHEST), null, UltimateBankConfig::storageSavingsTreasureChest),
+	FANCY_DRESS_BOX("POH fancy dress box", true, merge(FancyDressBoxItems.ITEMS, WikiStorageItems.FANCY_DRESS_BOX), null, UltimateBankConfig::storageSavingsFancyDressBox),
+	MAGIC_WARDROBE("POH magic wardrobe", true, merge(MagicWardrobeItems.ITEMS, WikiStorageItems.MAGIC_WARDROBE), MagicWardrobeItems.BIS, UltimateBankConfig::storageSavingsMagicWardrobe),
+	ARMOUR_CASE("POH armour case", true, merge(ArmourCaseItems.ITEMS, WikiStorageItems.ARMOUR_CASE), ArmourCaseItems.BIS, UltimateBankConfig::storageSavingsArmourCase),
+	CAPE_RACK("POH cape rack", true, merge(CapeRackItems.ITEMS, WikiStorageItems.CAPE_RACK), CapeRackItems.BIS, UltimateBankConfig::storageSavingsCapeRack),
 	TOY_BOX("POH toy box", true, ToyBoxItems.ITEMS, null, UltimateBankConfig::storageSavingsToyBox),
 	BOOKCASE("POH bookcase", true, BookcaseItems.ITEMS, null, UltimateBankConfig::storageSavingsBookcase),
 	PET_HOUSE("POH pet house", true, PetHouseItems.ITEMS, null, UltimateBankConfig::storageSavingsPetHouse),
@@ -76,6 +79,14 @@ public enum StorageLocation
 		this.itemIds = itemIds;
 		this.bisItemIds = bisItemIds;
 		this.enabled = enabled;
+	}
+
+	/**
+	 * @return both lists' items, each once (used to add the OSRS Wiki's items to the hand-kept lists)
+	 */
+	private static int[] merge(int[] a, int[] b)
+	{
+		return IntStream.concat(Arrays.stream(a), Arrays.stream(b)).distinct().toArray();
 	}
 
 	public boolean isEnabled(UltimateBankConfig config)
