@@ -31,6 +31,11 @@ Run `/hub-check` to audit these automatically before each release.
 |---|---|---|---|
 | v1.0.0 | `d238b96` | https://github.com/runelite/plugin-hub/pull/18906 | submitted 2026-10-18 |
 
-Fork: https://github.com/Luk-Plugins/plugin-hub (local clone `../plugin-hub`, branch per update).
+**Fork:** use one in the **LukRLPlugins org** (`gh repo fork runelite/plugin-hub --org LukRLPlugins`), so everything
+for these plugins lives in the org. v1.0.0 was submitted from a user-account fork (`Luk-Plugins/plugin-hub`) by
+mistake; delete that fork once PR #18906 is merged (its branch must stay until then). Local clone: `../plugin-hub`.
+PRs are always opened by a user (Luk-Plugins), so expect RuneLite's bot to label them `non-author plugin change`
+(org-owned plugin repo vs user author); it's informational.
+
 **To release an update:** tag `vX.Y.Z` on `main`, run `/hub-check` (config keys diffed against the previous tag), then
-on the fork change only `commit=` in `plugins/ultimate-bank` and open a PR (or push to the open one).
+on the org fork change only `commit=` in `plugins/ultimate-bank` and open a PR (or push to the open one).
