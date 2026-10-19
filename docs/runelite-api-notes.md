@@ -53,6 +53,9 @@ Current RuneLite client version at setup: **1.13.2**.
   text is **empty** (checked in-game for fancy dress box, treasure chest, magic wardrobe), so it can't give the tier.
 - **POH storage stacks**: almost every item can be stored more than once (e.g. Bruma torches in the magic wardrobe).
   Assume stacking unless a storage is known not to; never treat "already stored" as "can't store".
+- **Costume room furniture tiers** are separate objects: `ObjectID.POH_COS_ROOM_<STORAGE>_<TIER>` (+ `_OPEN_` variants;
+  treasure chest is spelled `TRESURE`), and `POH_COS_ROOM_<STORAGE>_HOTSPOT` is the empty build space (only in
+  building mode). Detect on `GameObjectSpawned`.
 - Bank placeholders have quantity 0 in the bank `ItemContainer`.
 
 ## Tooling gotchas

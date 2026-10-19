@@ -84,6 +84,14 @@ public enum StorageLocation
 	}
 
 	/**
+	 * @return every item this location can hold
+	 */
+	public int[] getItemIds()
+	{
+		return itemIds.clone();
+	}
+
+	/**
 	 * @return the snapshot that records what this location already holds, or null if it isn't snapshotted
 	 */
 	public SnapshotLocation getSnapshotLocation()

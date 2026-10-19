@@ -8,6 +8,9 @@ import com.ultimatebank.core.snapshots.StorageSnapshots;
 import com.ultimatebank.feature.storagesavings.data.StorageLocation;
 import com.ultimatebank.feature.storagesavings.stash.StashTracker;
 import com.ultimatebank.feature.storagesavings.stash.StashUnit;
+import com.ultimatebank.feature.storagesavings.tiers.PohStorage;
+import com.ultimatebank.feature.storagesavings.tiers.PohTiers;
+import com.ultimatebank.feature.storagesavings.tiers.TierPlanner;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.SwingUtilities;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.Item;
@@ -33,6 +37,7 @@ import net.runelite.api.KeyCode;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.events.ChatMessage;
+import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
@@ -104,6 +109,9 @@ public class StorageSavingsFeature implements BankFeature
 
 	@Inject
 	private StorageSnapshots snapshots;
+
+	@Inject
+	private PohTiers pohTiers;
 
 	private final Consumer<SnapshotLocation> snapshotListener = this::onSnapshotsChanged;
 
@@ -251,6 +259,16 @@ public class StorageSavingsFeature implements BankFeature
 						listed ? IgnoreList.remove(ignored, name, itemId) : IgnoreList.add(ignored, name)));
 			}
 			return;
+		}
+	}
+
+	@Subscribe
+	public void onGameObjectSpawned(GameObjectSpawned event)
+	{
+		// Costume room furniture (or its empty build space) tells us which tier is built
+		if (pohTiers.detect(event.getGameObject().getId()))
+		{
+			recompute();
 		}
 	}
 
@@ -413,6 +431,7 @@ public class StorageSavingsFeature implements BankFeature
 		Map<String, List<Integer>> itemsByLocation = new LinkedHashMap<>();
 		Set<String> pohLocations = new HashSet<>();
 		Set<Integer> alsoStored = new HashSet<>();
+		Map<StorageLocation, TierResult> tiers = planTiers(ignored, keepBis);
 
 		for (int itemId : bankItems)
 		{
@@ -424,7 +443,8 @@ public class StorageSavingsFeature implements BankFeature
 			List<String> where = new ArrayList<>();
 			for (StorageLocation location : StorageLocation.forItem(itemId))
 			{
-				if (location.isEnabled(config))
+				TierResult tier = tiers.get(location);
+				if (location.isEnabled(config) && (tier == null || tier.fits.contains(itemId)))
 				{
 					int stored = storedCount(location, itemId);
 					if (stored > 0)
@@ -462,6 +482,18 @@ public class StorageSavingsFeature implements BankFeature
 			}
 		}
 
+		// Storages that hold nothing now but would after an upgrade still get a row, for the upgrade hint
+		Map<String, TierResult> tiersByName = new HashMap<>();
+		tiers.forEach((location, result) ->
+		{
+			tiersByName.put(location.getDisplayName(), result);
+			if (result.nextTierExtra > 0)
+			{
+				itemsByLocation.computeIfAbsent(location.getDisplayName(), k -> new ArrayList<>());
+				pohLocations.add(location.getDisplayName());
+			}
+		});
+
 		Map<Integer, String> names = new HashMap<>();
 		List<StorageSavingsState.LocationSavings> ranking = itemsByLocation.entrySet().stream()
 			.map(e ->
@@ -469,15 +501,81 @@ public class StorageSavingsFeature implements BankFeature
 				List<Integer> ids = new ArrayList<>(e.getValue());
 				ids.forEach(id -> names.computeIfAbsent(id, k -> itemManager.getItemComposition(k).getName()));
 				ids.sort(Comparator.comparing(names::get, String.CASE_INSENSITIVE_ORDER));
+				TierResult tier = tiersByName.get(e.getKey());
 				return new StorageSavingsState.LocationSavings(e.getKey(), pohLocations.contains(e.getKey()),
-					ids.stream().map(names::get).collect(Collectors.toList()), List.copyOf(ids));
+					ids.stream().map(names::get).collect(Collectors.toList()), List.copyOf(ids),
+					tier == null ? null : tier.label, tier == null ? null : tier.nextTier,
+					tier == null ? 0 : tier.nextTierExtra);
 			})
 			.sorted(Comparator.comparingInt((StorageSavingsState.LocationSavings l) -> l.getItemNames().size()).reversed()
+				.thenComparing(Comparator.comparingInt(StorageSavingsState.LocationSavings::getNextTierExtra).reversed())
 				.thenComparing(StorageSavingsState.LocationSavings::getName))
 			.collect(Collectors.toList());
 
 		log.debug("{} storable items in bank across {} locations", flagged.size(), ranking.size());
 		publish(new StorageSavingsState.Results(true, bankSnapshotAt, alsoStored.size(), Map.copyOf(flagged), ranking));
+	}
+
+	/**
+	 * Applies each tiered POH storage's capacity at the built tier: which banked items fit, and what the next tier
+	 * would add.
+	 */
+	private Map<StorageLocation, TierResult> planTiers(Set<Integer> ignored, boolean keepBis)
+	{
+		Map<StorageLocation, TierResult> results = new HashMap<>();
+		for (PohStorage storage : PohStorage.values())
+		{
+			StorageLocation location = storage.getLocation();
+			if (!location.isEnabled(config))
+			{
+				continue;
+			}
+
+			Set<Integer> candidates = new HashSet<>();
+			for (int itemId : bankItems)
+			{
+				if (!ignored.contains(itemId) && !(keepBis && StorageLocation.isBis(itemId))
+					&& StorageLocation.forItem(itemId).contains(location))
+				{
+					candidates.add(itemId);
+				}
+			}
+
+			int tier = pohTiers.tier(storage);
+			if (tier == PohTiers.UNKNOWN)
+			{
+				results.put(location, new TierResult(candidates, "tier unknown", null, 0));
+				continue;
+			}
+
+			List<TierPlanner.StorageSet> sets = pohTiers.sets(storage);
+			Snapshot snapshot = config.storageSavingsUseSnapshots() ? snapshots.latest(location.getSnapshotLocation()) : null;
+			Set<Integer> stored = snapshot == null ? Set.of() : snapshot.getQuantities().keySet();
+			List<PohStorage.Tier> storageTiers = storage.getTiers();
+
+			Set<Integer> fits = tier == PohStorage.NOT_BUILT ? Set.of()
+				: TierPlanner.fits(storage.getLimit(), storageTiers.get(tier).getCapacity(), sets, candidates, stored);
+			String nextTier = null;
+			int extra = 0;
+			if (tier + 1 < storageTiers.size())
+			{
+				PohStorage.Tier next = storageTiers.get(tier + 1);
+				nextTier = next.getName();
+				extra = TierPlanner.fits(storage.getLimit(), next.getCapacity(), sets, candidates, stored).size() - fits.size();
+			}
+			String label = tier == PohStorage.NOT_BUILT ? "not built" : storageTiers.get(tier).getName();
+			results.put(location, new TierResult(fits, label, nextTier, Math.max(0, extra)));
+		}
+		return results;
+	}
+
+	@Value
+	private static class TierResult
+	{
+		Set<Integer> fits;
+		String label;
+		String nextTier;
+		int nextTierExtra;
 	}
 
 	private void publish(StorageSavingsState.Results results)

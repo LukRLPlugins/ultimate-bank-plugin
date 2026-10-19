@@ -1,5 +1,6 @@
 package com.ultimatebank;
 
+import com.ultimatebank.feature.storagesavings.tiers.TierChoice;
 import java.awt.Color;
 import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
@@ -302,12 +303,53 @@ public interface UltimateBankConfig extends Config
 		return true;
 	}
 
+	// ---- Storage savings: POH tiers ----
+
+	@ConfigSection(
+		name = "Storage savings: POH tiers",
+		description = "Which tier of each costume room storage you've built, so only what fits is suggested. "
+			+ "Auto-detect reads it when you're in your costume room.",
+		position = 2,
+		closedByDefault = true
+	)
+	String storageSavingsTiersSection = "storageSavingsTiersSection";
+
+	@ConfigItem(keyName = "storageSavingsTierFancyDressBox", name = "Fancy dress box", description = "Oak holds 2 costumes, teak 4, mahogany all", section = storageSavingsTiersSection, position = 0)
+	default TierChoice.FancyDressBox storageSavingsTierFancyDressBox()
+	{
+		return TierChoice.FancyDressBox.AUTO_DETECT;
+	}
+
+	@ConfigItem(keyName = "storageSavingsTierArmourCase", name = "Armour case", description = "Oak holds 25 sets, teak 50, mahogany all", section = storageSavingsTiersSection, position = 1)
+	default TierChoice.ArmourCase storageSavingsTierArmourCase()
+	{
+		return TierChoice.ArmourCase.AUTO_DETECT;
+	}
+
+	@ConfigItem(keyName = "storageSavingsTierMagicWardrobe", name = "Magic wardrobe", description = "Oak holds 7 sets, +7 per tier, marble all", section = storageSavingsTiersSection, position = 2)
+	default TierChoice.MagicWardrobe storageSavingsTierMagicWardrobe()
+	{
+		return TierChoice.MagicWardrobe.AUTO_DETECT;
+	}
+
+	@ConfigItem(keyName = "storageSavingsTierCapeRack", name = "Cape rack", description = "All capes fit; skillcapes: oak 0, teak 1, mahogany 5, gilded 10, marble/magical all", section = storageSavingsTiersSection, position = 3)
+	default TierChoice.CapeRack storageSavingsTierCapeRack()
+	{
+		return TierChoice.CapeRack.AUTO_DETECT;
+	}
+
+	@ConfigItem(keyName = "storageSavingsTierTreasureChest", name = "Treasure chest", description = "Oak: beginner and easy rewards, teak: + medium, mahogany: all", section = storageSavingsTiersSection, position = 4)
+	default TierChoice.TreasureChest storageSavingsTierTreasureChest()
+	{
+		return TierChoice.TreasureChest.AUTO_DETECT;
+	}
+
 	// ---- Where's my stuff ----
 
 	@ConfigSection(
 		name = "Where's my stuff",
 		description = "Search your bank and POH storage, with values and recent changes",
-		position = 2,
+		position = 3,
 		closedByDefault = true
 	)
 	String wheresMyStuffSection = "wheresMyStuffSection";

@@ -60,5 +60,11 @@ class StorageSavingsState
 		List<String> itemNames;
 		/** IDs of the same items, in the same order */
 		List<Integer> itemIds;
+		/** Built tier ("Oak", "not built", "tier unknown"), or null if the location has no tiers */
+		String tier;
+		/** Next tier up, or null if there's none (or the tier is unknown) */
+		String nextTier;
+		/** Extra items the next tier would take */
+		int nextTierExtra;
 	}
 }
