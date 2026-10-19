@@ -266,15 +266,17 @@ public class StorageSavingsFeature implements BankFeature
 	public void onGameObjectSpawned(GameObjectSpawned event)
 	{
 		// Costume room furniture (or its empty build space) tells us which tier is built
-		if (pohTiers.detect(event.getGameObject().getId()))
-		{
-			recompute();
-		}
+		pohTiers.seen(event.getGameObject().getId());
 	}
 
 	@Subscribe
 	public void onGameTick(GameTick event)
 	{
+		if (pohTiers.applySeen())
+		{
+			recompute();
+		}
+
 		if (config.storageSavingsStash() && stashTracker.onGameTick())
 		{
 			recompute();

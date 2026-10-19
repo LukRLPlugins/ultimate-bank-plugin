@@ -41,6 +41,8 @@ public class PohTiers
 	private final ItemManager itemManager;
 
 	private Map<PohStorage, List<TierPlanner.StorageSet>> sets;
+	/** Tiers seen since the last tick; built furniture beats an empty build space seen in the same load */
+	private final Map<PohStorage, Integer> pending = new EnumMap<>(PohStorage.class);
 
 	@Inject
 	PohTiers(ConfigManager configManager, UltimateBankConfig config, Gson gson, ItemManager itemManager)
@@ -67,27 +69,41 @@ public class PohTiers
 	}
 
 	/**
-	 * Records the tier shown by a game object in the player's house, if it's costume room furniture.
-	 *
-	 * @return whether a storage's detected tier changed
+	 * Notes a game object spawning in the player's house, if it's costume room furniture or its empty build space.
+	 * Applied by {@link #applySeen()} on the next tick: the build space can spawn alongside built furniture.
 	 */
-	public boolean detect(int objectId)
+	public void seen(int objectId)
 	{
 		PohStorage storage = PohStorage.forObject(objectId);
-		if (storage == null)
+		if (storage != null)
 		{
-			return false;
+			pending.merge(storage, PohStorage.tierForObject(objectId), Math::max);
 		}
-		int tier = PohStorage.tierForObject(objectId);
-		String key = DETECTED_KEY_PREFIX + storage.name();
-		Integer previous = configManager.getRSProfileConfiguration(UltimateBankConfig.GROUP, key, Integer.class);
-		if (previous != null && previous == tier)
+	}
+
+	/**
+	 * Saves the tiers seen since the last call.
+	 *
+	 * @return whether any storage's detected tier changed
+	 */
+	public boolean applySeen()
+	{
+		boolean changed = false;
+		for (Map.Entry<PohStorage, Integer> entry : pending.entrySet())
 		{
-			return false;
+			PohStorage storage = entry.getKey();
+			int tier = entry.getValue();
+			String key = DETECTED_KEY_PREFIX + storage.name();
+			Integer previous = configManager.getRSProfileConfiguration(UltimateBankConfig.GROUP, key, Integer.class);
+			if (previous == null || previous != tier)
+			{
+				configManager.setRSProfileConfiguration(UltimateBankConfig.GROUP, key, tier);
+				log.debug("Detected {} tier {}", storage, tier == PohStorage.NOT_BUILT ? "not built" : storage.getTiers().get(tier).getName());
+				changed = true;
+			}
 		}
-		configManager.setRSProfileConfiguration(UltimateBankConfig.GROUP, key, tier);
-		log.debug("Detected {} tier {}", storage, tier == PohStorage.NOT_BUILT ? "not built" : storage.getTiers().get(tier).getName());
-		return true;
+		pending.clear();
+		return changed;
 	}
 
 	private TierChoice choice(PohStorage storage)
