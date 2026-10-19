@@ -33,7 +33,6 @@ public class UltimateBankPlugin extends Plugin
 	 */
 	private static final List<Class<? extends BankFeature>> FEATURES = List.of(
 		StorageSavingsFeature.class
-		// WheresMyStuffFeature: search panel hidden until it's ready for release (code kept)
 	);
 
 	@Inject

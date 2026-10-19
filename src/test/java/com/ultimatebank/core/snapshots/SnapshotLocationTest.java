@@ -1,27 +1,11 @@
-package com.ultimatebank.feature.wheresmystuff;
+package com.ultimatebank.core.snapshots;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
-import com.ultimatebank.core.snapshots.SnapshotLocation;
-import java.util.Map;
 import org.junit.Test;
 
-public class SnapshotDiffTest
+public class SnapshotLocationTest
 {
-	@Test
-	public void reportsGainsLossesAndNewOrGoneItems()
-	{
-		Map<Integer, Integer> before = Map.of(1, 10, 2, 5, 3, 1);
-		Map<Integer, Integer> after = Map.of(1, 15, 2, 5, 4, 2);
-		assertEquals(Map.of(1, 5, 3, -1, 4, 2), SnapshotDiff.changes(before, after));
-	}
-
-	@Test
-	public void noPreviousMeansNoChanges()
-	{
-		assertEquals(Map.of(), SnapshotDiff.changes(null, Map.of(1, 1)));
-	}
-
 	@Test
 	public void recognisesPohStoragesFromInterfaceText()
 	{

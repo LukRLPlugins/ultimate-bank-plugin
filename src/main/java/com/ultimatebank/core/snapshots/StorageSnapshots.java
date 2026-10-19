@@ -42,11 +42,12 @@ public class StorageSnapshots
 	/** The costume room interface fills in its items a couple of ticks after it opens */
 	private static final int POH_SCAN_DELAY_TICKS = 2;
 	private static final int POH_SCAN_ATTEMPTS = 6;
+	/** Snapshots kept per location (the latest, plus a few earlier for comparisons) */
+	private static final int HISTORY_SIZE = 5;
 
 	private final Client client;
 	private final ConfigManager configManager;
 	private final Gson gson;
-	private final UltimateBankConfig config;
 	private final PohStorageScanner pohScanner;
 
 	/** Oldest first */
@@ -58,13 +59,11 @@ public class StorageSnapshots
 	private int pohScanAttemptsLeft;
 
 	@Inject
-	StorageSnapshots(Client client, ConfigManager configManager, Gson gson, UltimateBankConfig config,
-		PohStorageScanner pohScanner)
+	StorageSnapshots(Client client, ConfigManager configManager, Gson gson, PohStorageScanner pohScanner)
 	{
 		this.client = client;
 		this.configManager = configManager;
 		this.gson = gson;
-		this.config = config;
 		this.pohScanner = pohScanner;
 	}
 
@@ -253,7 +252,7 @@ public class StorageSnapshots
 		{
 			history.add(snapshot);
 		}
-		while (history.size() > Math.max(2, config.wheresMyStuffSnapshotCount()))
+		while (history.size() > HISTORY_SIZE)
 		{
 			history.remove(0);
 		}

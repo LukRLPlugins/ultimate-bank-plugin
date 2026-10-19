@@ -14,7 +14,7 @@ All sources below are BSD-2-Clause (checked 2026-10-18). Re-check the license be
 | Bank value | idea | Bank Value (spudjb) | https://github.com/spudjb/runelite-bank-value |
 | Better search | idea | Better Bank Search (KaasPeer1), Extended Bank Search (khendricksen) | https://github.com/KaasPeer1/better-bank-search, https://github.com/khendricksen/runelite-extended-bank-search |
 | Storage savings | done (v1) | Wasted Bank Space (mcgeer) + unmerged PRs (Brettgod1355 and others). Still to compare: POH Storage (tcpowell), Bank POH Search (Wozak-1) | https://github.com/mcgeer/WastedBankSpace, https://github.com/tcpowell/poh-storage, https://github.com/Wozak-1/bank-poh-searcher |
-| Where's my stuff | snapshots done; search panel hidden (#21) | Where's My Stuff / Bank POH Search (Wozak-1) | https://github.com/Wozak-1/bank-poh-searcher |
+| Where's my stuff | snapshots done; search panel removed before v1 (#21) | Where's My Stuff / Bank POH Search (Wozak-1) | https://github.com/Wozak-1/bank-poh-searcher |
 | Costume room highlighter | idea | Costume Room Highlighter (michaelperino) | https://github.com/michaelperino/CostumeRoomChecker |
 
 ## Feature notes
