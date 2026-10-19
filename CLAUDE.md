@@ -49,6 +49,10 @@ All current source plugins are BSD-2-Clause (see `docs/roadmap.md`). When portin
 3. Record the source, author, and license in `docs/attribution.md`.
 Use the `/port-from-plugin` skill.
 
+**OSRS Wiki data** (text is CC BY-NC-SA 3.0): take only facts about the game (item/set names, membership, levels,
+capacities) as generated data, never wiki prose or images. Generate it with a script in `tools/` and link every source
+page in `docs/attribution.md` › Game data from the OSRS Wiki. This keeps the repo purely BSD-2 (decided 2026-10-18).
+
 ## Workflow (ideas → prototypes → approval)
 - Board: https://github.com/orgs/LukRLPlugins/projects/1. Status: Ideas → Planned → In progress → Prototype ready → Done.
 - `/idea` captures, `/prototype` builds a draft PR on `proto/<issue>-<slug>`, `/approve` merges after the user tests
