@@ -21,9 +21,12 @@ Run `/hub-check` to audit these automatically before each release.
 1. Fork https://github.com/runelite/plugin-hub
 2. Add `plugins/ultimate-bank` with:
    ```
-   repository=https://github.com/<user>/ultimate-bank-plugin.git
+   repository=https://github.com/LukRLPlugins/ultimate-bank-plugin.git
    commit=<full 40-char commit hash>
+   authors=Luk-Plugins
    ```
+   `authors=` is required because the plugin repo is owned by an org: it names the GitHub account(s) allowed to
+   submit updates (a reviewer asked for it on PR #18906).
 3. Open a PR. For updates, change only `commit=`. Append `Generated-by: Claude Code` to the PR description (AGENTS.md › Submitting).
 
 ## Releases
