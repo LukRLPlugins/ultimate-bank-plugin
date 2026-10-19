@@ -8,7 +8,7 @@
 
 ## Behaviour
 After the bank has been opened this session:
-- **Bank marker:** a corner triangle (configurable color) on each storable bank item. Hovering lists every enabled
+- **Bank marker:** each storable bank item is marked in a configurable style (item outline, box outline, corner triangle or corner icon; colour, size, thickness, corner and icon are configurable). Hovering lists every enabled
   place it can go, with at most 3 STASH units plus "...and N more".
 - **Sidebar panel:** ranks storage locations by how many bank slots they would free, most first. POH builds are
   orange. Click a location to list its items. This answers "which upgrade frees the most space".
@@ -49,6 +49,12 @@ Section "Storage savings":
 | `storageSavingsEnabled` | boolean | true |
 | `storageSavingsMarker` | boolean | true |
 | `storageSavingsMarkerColor` | Color | (255,200,0) |
+| `storageSavingsMarkerStyle` | Item outline / Box outline / Corner triangle / Corner icon | Corner triangle |
+| `storageSavingsMarkerCorner` | Top/bottom left/right | Bottom right |
+| `storageSavingsMarkerSize` | int 4–24 (triangle, icon) | 8 |
+| `storageSavingsMarkerThickness` | int 1–4 (outlines) | 1 |
+| `storageSavingsMarkerIcon` | House / Chest / Star / Exclamation / Arrow / Custom item | House |
+| `storageSavingsMarkerIconItem` | item ID for Custom item | 995 |
 | `storageSavingsTagTab` | boolean | true |
 | `storageSavingsTagTabGroups` | boolean | true |
 | `storageSavingsUseSnapshots` | boolean | true |
@@ -80,6 +86,8 @@ Internal (not shown): `storageSavingsTagTabCreated` (global), `storageSavingsSta
 - Tests: `IgnoreListTest`, `data/StorageLocationTest`.
 
 ## In-game test checklist
+- [ ] Marker style: try each of Item outline, Box outline, Corner triangle, Corner icon; change colour, size,
+      thickness (outlines) and corner (triangle/icon); each preset icon; Custom item with an item ID
 - [ ] Enter your costume room: tiers are detected (log "Detected FANCY_DRESS_BOX tier Oak" etc.); panel rows show
       the tier, e.g. "POH fancy dress box · Oak · +3 with Teak"
 - [ ] Oak fancy dress box with 3+ costumes banked: only the 2 costumes with the most banked pieces are suggested
