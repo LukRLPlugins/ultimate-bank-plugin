@@ -41,8 +41,12 @@ public class PohTiers
 	private final ItemManager itemManager;
 
 	private Map<PohStorage, List<TierPlanner.StorageSet>> sets;
-	/** Tiers seen since the last tick; built furniture beats an empty build space seen in the same load */
+	/** Ticks with no new costume room objects before a house load counts as finished */
+	private static final int QUIET_TICKS = 2;
+
+	/** Tiers seen during the current house load; built furniture beats an empty build space */
 	private final Map<PohStorage, Integer> pending = new EnumMap<>(PohStorage.class);
+	private int quietTicksLeft;
 
 	@Inject
 	PohTiers(ConfigManager configManager, UltimateBankConfig config, Gson gson, ItemManager itemManager)
@@ -70,7 +74,7 @@ public class PohTiers
 
 	/**
 	 * Notes a game object spawning in the player's house, if it's costume room furniture or its empty build space.
-	 * Applied by {@link #applySeen()} on the next tick: the build space can spawn alongside built furniture.
+	 * The build space can spawn a tick before the built furniture, so {@link #applySeen()} waits for the load to end.
 	 */
 	public void seen(int objectId)
 	{
@@ -78,16 +82,21 @@ public class PohTiers
 		if (storage != null)
 		{
 			pending.merge(storage, PohStorage.tierForObject(objectId), Math::max);
+			quietTicksLeft = QUIET_TICKS;
 		}
 	}
 
 	/**
-	 * Saves the tiers seen since the last call.
+	 * Call once per tick. Saves the tiers seen once the house has stopped loading costume room objects.
 	 *
 	 * @return whether any storage's detected tier changed
 	 */
 	public boolean applySeen()
 	{
+		if (pending.isEmpty() || --quietTicksLeft > 0)
+		{
+			return false;
+		}
 		boolean changed = false;
 		for (Map.Entry<PohStorage, Integer> entry : pending.entrySet())
 		{
