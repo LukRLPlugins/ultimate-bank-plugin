@@ -3,10 +3,21 @@
 A bank toolkit for [RuneLite](https://runelite.net). It finds the items in your bank that could live somewhere else,
 and shows which storage upgrades would free up the most bank space.
 
-<p>
-  <img src="docs/images/bank-markers.png" alt="Bank items with storable markers" height="420">
-  <img src="docs/images/storage-panel.png" alt="Storage savings panel ranking storage by bank slots freed" height="420">
-</p>
+Open your bank and every item that could live somewhere else gets a marker, while the sidebar panel ranks where
+the space would come from:
+
+<table>
+  <tr>
+    <td align="center" valign="top">
+      <img src="docs/images/bank-markers.png" alt="Bank items with storable markers" height="420"><br>
+      <sub>Green corner markers on items that could be stored outside the bank</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="docs/images/storage-panel.png" alt="Storage savings panel ranking storage by bank slots freed" height="420"><br>
+      <sub>The Storage savings panel: each storage, the bank slots it frees,<br>your POH tier and what the next upgrade adds</sub>
+    </td>
+  </tr>
+</table>
 
 ## Storage savings
 - **Storable markers:** every banked item that could be stored elsewhere is marked (corner triangle, item outline or
@@ -26,10 +37,21 @@ and shows which storage upgrades would free up the most bank space.
 - **Ignore list:** shift-right-click a marked item › *Ignore storable*, or list names, IDs or `*` wildcards in config.
   Best-in-slot items (skillcapes, max cape, Ancestral, ...) are never flagged unless you turn that off.
 
-<p>
-  <img src="docs/images/storable-tab.png" alt="The storable tag tab, grouped by container" height="420">
-  <img src="docs/images/poh-tiers.png" alt="POH tier settings">
-</p>
+The `storable` tab gathers everything in one place, grouped by where it can go, and the POH tiers are detected for
+you (or set by hand):
+
+<table>
+  <tr>
+    <td align="center" valign="top">
+      <img src="docs/images/storable-tab.png" alt="The storable tag tab, grouped by container" height="420"><br>
+      <sub>The <code>storable</code> bank tag tab, one titled group per storage</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="docs/images/poh-tiers.png" alt="POH tier settings"><br>
+      <sub>POH tier settings: auto-detected in your costume room,<br>or pick a tier per storage</sub>
+    </td>
+  </tr>
+</table>
 
 Find everything under **Configuration › Ultimate Bank**. Each part can be turned off on its own.
 
