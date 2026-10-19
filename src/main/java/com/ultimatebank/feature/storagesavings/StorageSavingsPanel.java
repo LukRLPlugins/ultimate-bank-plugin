@@ -1,5 +1,6 @@
 package com.ultimatebank.feature.storagesavings;
 
+import com.ultimatebank.core.snapshots.Snapshot;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -63,15 +64,21 @@ class StorageSavingsPanel extends PluginPanel
 		{
 			summary.setText("<html>Open your bank to scan it.</html>");
 		}
-		else if (results.getFlagged().isEmpty())
-		{
-			summary.setText("<html>Nothing in your bank could be stored elsewhere.</html>");
-		}
 		else
 		{
 			int count = results.getFlagged().size();
-			summary.setText("<html>" + count + (count == 1 ? " item" : " items")
-				+ " could be stored elsewhere. Click a location to see its items.</html>");
+			String text = count == 0
+				? "Nothing in your bank could be stored elsewhere."
+				: count + (count == 1 ? " item" : " items") + " could be stored elsewhere. Click a location to see its items.";
+			if (results.getAlreadyStored() > 0)
+			{
+				text += "<br>" + results.getAlreadyStored() + " already have copies stored in your POH.";
+			}
+			if (results.getBankSnapshotAt() > 0)
+			{
+				text += "<br><i>From your bank as last seen " + Snapshot.ago(results.getBankSnapshotAt()) + ".</i>";
+			}
+			summary.setText("<html>" + text + "</html>");
 			for (StorageSavingsState.LocationSavings location : results.getRanking())
 			{
 				ranking.add(row(location));

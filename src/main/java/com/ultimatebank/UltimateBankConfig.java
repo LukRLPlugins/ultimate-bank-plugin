@@ -5,6 +5,7 @@ import net.runelite.client.config.Config;
 import net.runelite.client.config.ConfigGroup;
 import net.runelite.client.config.ConfigItem;
 import net.runelite.client.config.ConfigSection;
+import net.runelite.client.config.Range;
 
 /**
  * One {@code @ConfigSection} per feature. Each section starts with an enable toggle,
@@ -94,11 +95,24 @@ public interface UltimateBankConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "storageSavingsUseSnapshots",
+		name = "Use saved snapshots",
+		description = "Before you open the bank, work from the bank as it was last seen. Don't suggest storing an item "
+			+ "that a POH storage already holds (open each POH storage once so it's recorded).",
+		section = storageSavingsSection,
+		position = 5
+	)
+	default boolean storageSavingsUseSnapshots()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "storageSavingsPanel",
 		name = "Sidebar panel",
 		description = "Show a sidebar panel ranking storage locations by how many bank slots they would free",
 		section = storageSavingsSection,
-		position = 5
+		position = 6
 	)
 	default boolean storageSavingsPanel()
 	{
@@ -110,7 +124,7 @@ public interface UltimateBankConfig extends Config
 		name = "Never flag best-in-slot",
 		description = "Don't flag best-in-slot items such as skillcapes, max cape or Ancestral, even if they could be stored",
 		section = storageSavingsSection,
-		position = 6
+		position = 7
 	)
 	default boolean storageSavingsKeepBis()
 	{
@@ -123,7 +137,7 @@ public interface UltimateBankConfig extends Config
 		description = "Comma-separated item names, item IDs or wildcards (e.g. *cape*) to never flag.<br>"
 			+ "Tip: shift-right-click a marked bank item to ignore or unignore it.",
 		section = storageSavingsSection,
-		position = 7
+		position = 8
 	)
 	default String storageSavingsIgnored()
 	{
@@ -142,7 +156,7 @@ public interface UltimateBankConfig extends Config
 		name = "STASH units",
 		description = "Flag items that could be stored in a clue scroll STASH unit",
 		section = storageSavingsSection,
-		position = 8
+		position = 9
 	)
 	default boolean storageSavingsStash()
 	{
@@ -155,7 +169,7 @@ public interface UltimateBankConfig extends Config
 		description = "Only count STASH units you've built and haven't filled yet.<br>"
 			+ "Open the STASH chart in your POH or Watson's noticeboard once to load which units are filled.",
 		section = storageSavingsSection,
-		position = 9
+		position = 10
 	)
 	default boolean storageSavingsStashBuiltOnly()
 	{
@@ -286,5 +300,64 @@ public interface UltimateBankConfig extends Config
 	default boolean storageSavingsMysteriousStranger()
 	{
 		return true;
+	}
+
+	// ---- Where's my stuff ----
+
+	@ConfigSection(
+		name = "Where's my stuff",
+		description = "Search your bank and POH storage, with values and recent changes",
+		position = 2,
+		closedByDefault = true
+	)
+	String wheresMyStuffSection = "wheresMyStuffSection";
+
+	@ConfigItem(
+		keyName = "wheresMyStuffEnabled",
+		name = "Enable",
+		description = "Add a sidebar panel to search your bank and POH storage (open each once so it's recorded)",
+		section = wheresMyStuffSection,
+		position = 0
+	)
+	default boolean wheresMyStuffEnabled()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "wheresMyStuffSnapshotCount",
+		name = "Snapshots kept",
+		description = "How many past snapshots of each location to keep, for 'recently changed'",
+		section = wheresMyStuffSection,
+		position = 1
+	)
+	@Range(min = 2, max = 20)
+	default int wheresMyStuffSnapshotCount()
+	{
+		return 5;
+	}
+
+	@ConfigItem(
+		keyName = "wheresMyStuffWarnHours",
+		name = "Old after (hours)",
+		description = "Show a location's snapshot in orange once it's this old",
+		section = wheresMyStuffSection,
+		position = 2
+	)
+	default int wheresMyStuffWarnHours()
+	{
+		return 24;
+	}
+
+	@ConfigItem(
+		keyName = "wheresMyStuffStaleHours",
+		name = "Stale after (hours)",
+		description = "Show a location's snapshot in red once it's this old",
+		section = wheresMyStuffSection,
+		position = 3
+	)
+	default int wheresMyStuffStaleHours()
+	{
+		return 168;
 	}
 }
