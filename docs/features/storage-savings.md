@@ -16,8 +16,9 @@ After the bank has been opened this session:
   added to the Bank Tags tab list and removed again when the option or feature is turned off. A user's own tab
   with the same name is never removed.
 - **Uses saved snapshots** (default on, `core/snapshots`): before the bank is opened this session, works from the
-  bank as last seen (panel says how old); doesn't suggest a container for an item that container's POH snapshot
-  already holds, and counts those in the panel.
+  bank as last seen (panel says how old). POH storage **stacks** (confirmed in-game, e.g. Bruma torch in the magic
+  wardrobe), so copies already stored never stop a suggestion; the tooltip shows "(N stored)" and the panel counts
+  them.
 - **Grouped storable tab** (default on): the `storable` tab gets a core layout with one group per container, a title
   and divider line above each (drawn by `StorableTitlesOverlay`), ordered most bank slots freed first. An item that
   fits several containers appears in each group. Turning it off removes only the layout we created.

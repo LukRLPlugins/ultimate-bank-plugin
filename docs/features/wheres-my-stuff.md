@@ -14,7 +14,7 @@
   changed** (items whose quantity changed since the previous snapshot of that location, biggest value change
   first, green +/red -). A freshness line per location turns orange/red when old/stale.
 - **Storage savings uses the snapshots:** works from the saved bank before you open it this session ("from your
-  bank as last seen X ago"), and doesn't suggest a container for an item that container already holds.
+  bank as last seen X ago"); its tooltip shows how many copies a POH storage already holds ("(2 stored)").
 
 Dropped for v1 (follow-ups): equipment stat comparison, STASH units in the search.
 
@@ -43,8 +43,8 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
       Recently changed: it shows with a green +/red − amount
 - [ ] Restart the client and log in without opening the bank: panel still has your data; Storage savings panel says
       "From your bank as last seen …" and markers/ranking work
-- [ ] Bank a duplicate of something already in your toy box: it's not suggested for the toy box; the Storage savings
-      panel counts it as "already stored in your POH"
-- [ ] Turn off "Use saved snapshots": Storage savings waits for the bank again and suggests stored items again
+- [ ] Bank a copy of something already in your toy box: still suggested for the toy box, tooltip says "(N stored)",
+      Storage savings panel counts it under "already have copies stored in your POH"
+- [ ] Turn off "Use saved snapshots": Storage savings waits for the bank again; no "(N stored)" notes
 - [ ] Turn off "Where's my stuff": panel button disappears; Storage savings unaffected
-- [ ] Client log: the "Scanned POH_… tier text '…'" line, so #14 can use the tier label
+

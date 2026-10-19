@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +51,7 @@ public class StorageSnapshots
 
 	/** Oldest first */
 	private final Map<SnapshotLocation, List<Snapshot>> histories = new EnumMap<>(SnapshotLocation.class);
-	private final List<Runnable> listeners = new CopyOnWriteArrayList<>();
+	private final List<Consumer<SnapshotLocation>> listeners = new CopyOnWriteArrayList<>();
 	private String loadedProfile;
 	private boolean bankScanPending;
 	private int pohScanDelay = -1;
@@ -86,14 +87,15 @@ public class StorageSnapshots
 	}
 
 	/**
-	 * Called whenever a snapshot is recorded or the account changes. Remove on shutdown.
+	 * Called with the location whenever a snapshot is recorded, or with null when the account's snapshots are
+	 * (re)loaded. Remove on shutdown.
 	 */
-	public void addListener(Runnable listener)
+	public void addListener(Consumer<SnapshotLocation> listener)
 	{
 		listeners.add(listener);
 	}
 
-	public void removeListener(Runnable listener)
+	public void removeListener(Consumer<SnapshotLocation> listener)
 	{
 		listeners.remove(listener);
 	}
@@ -133,7 +135,7 @@ public class StorageSnapshots
 			}
 		}
 		log.debug("Loaded snapshots for {} locations", histories.size());
-		notifyListeners();
+		notifyListeners(null);
 	}
 
 	@Subscribe
@@ -257,7 +259,7 @@ public class StorageSnapshots
 		}
 
 		configManager.setRSProfileConfiguration(UltimateBankConfig.GROUP, key(location), gson.toJson(history));
-		notifyListeners();
+		notifyListeners(location);
 	}
 
 	/**
@@ -278,8 +280,8 @@ public class StorageSnapshots
 		return KEY_PREFIX + location.name().toLowerCase(Locale.ROOT);
 	}
 
-	private void notifyListeners()
+	private void notifyListeners(SnapshotLocation location)
 	{
-		listeners.forEach(Runnable::run);
+		listeners.forEach(listener -> listener.accept(location));
 	}
 }

@@ -72,7 +72,7 @@ class StorageSavingsPanel extends PluginPanel
 				: count + (count == 1 ? " item" : " items") + " could be stored elsewhere. Click a location to see its items.";
 			if (results.getAlreadyStored() > 0)
 			{
-				text += "<br>" + results.getAlreadyStored() + " already stored in your POH, so not suggested there.";
+				text += "<br>" + results.getAlreadyStored() + " already have copies stored in your POH.";
 			}
 			if (results.getBankSnapshotAt() > 0)
 			{

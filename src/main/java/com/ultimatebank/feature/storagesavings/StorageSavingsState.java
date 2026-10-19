@@ -42,7 +42,7 @@ class StorageSavingsState
 		boolean bankSeen;
 		/** When the saved bank snapshot in use was taken, or 0 if the bank was seen live this session */
 		long bankSnapshotAt;
-		/** Banked items not suggested because a POH storage already holds them */
+		/** Flagged items that a suggested POH storage already holds copies of (shown for information) */
 		int alreadyStored;
 		/** Location names by flagged item ID */
 		Map<Integer, List<String>> flagged;

@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.swing.SwingUtilities;
@@ -51,7 +52,7 @@ public class WheresMyStuffFeature implements BankFeature
 	@Inject
 	private StorageSnapshots snapshots;
 
-	private final Runnable snapshotListener = this::refresh;
+	private final Consumer<SnapshotLocation> snapshotListener = location -> refresh();
 	private WheresMyStuffPanel panel;
 	private NavigationButton navButton;
 

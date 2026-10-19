@@ -50,7 +50,9 @@ Current RuneLite client version at setup: **1.13.2**.
 - **POH costume room storage** (`InterfaceID.POH_COSTUMES`, side panel `POH_COSTUMES_SIDE`): items fill in ~2 ticks
   after `WidgetLoaded`. Stored items are the widgets under `PohCostumes.ITEMS` with opacity 0 (unstored ones are
   faded). Which storage it is only shows in the interface text ("Toy box", "Magic wardrobe", ...). `PohCostumes.TIER`
-  probably names the furniture tier.
+  text is **empty** (checked in-game for fancy dress box, treasure chest, magic wardrobe), so it can't give the tier.
+- **POH storage stacks**: almost every item can be stored more than once (e.g. Bruma torches in the magic wardrobe).
+  Assume stacking unless a storage is known not to; never treat "already stored" as "can't store".
 - Bank placeholders have quantity 0 in the bank `ItemContainer`.
 
 ## Tooling gotchas

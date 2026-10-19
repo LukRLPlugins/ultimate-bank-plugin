@@ -20,6 +20,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -104,7 +105,7 @@ public class StorageSavingsFeature implements BankFeature
 	@Inject
 	private StorageSnapshots snapshots;
 
-	private final Runnable snapshotListener = this::onSnapshotsChanged;
+	private final Consumer<SnapshotLocation> snapshotListener = this::onSnapshotsChanged;
 
 	/** Non-placeholder item IDs in the bank, or null until the bank has been seen */
 	private Set<Integer> bankItems;
@@ -335,11 +336,16 @@ public class StorageSavingsFeature implements BankFeature
 	}
 
 	/**
-	 * A bank or POH snapshot was recorded, or the account changed.
+	 * A bank or POH snapshot was recorded (location), or the account's snapshots were loaded (null).
 	 */
-	private void onSnapshotsChanged()
+	private void onSnapshotsChanged(SnapshotLocation location)
 	{
-		recompute();
+		// A bank snapshot taken while we're watching the live bank is the data we already recomputed from
+		boolean bankLive = bankItems != null && bankSnapshotAt == 0;
+		if (location != SnapshotLocation.BANK || !bankLive)
+		{
+			recompute();
+		}
 	}
 
 	/**
@@ -374,14 +380,16 @@ public class StorageSavingsFeature implements BankFeature
 	}
 
 	/**
-	 * @return whether the location's POH snapshot shows it already holds the item (so a banked copy can't go there)
+	 * POH storage stacks, so copies already stored never stop another going in; this is just shown as information.
+	 *
+	 * @return how many of the item the location's POH snapshot shows stored, or 0 if none or unknown
 	 */
-	private boolean alreadyStored(StorageLocation location, int itemId)
+	private int storedCount(StorageLocation location, int itemId)
 	{
 		SnapshotLocation snapshotLocation = location.getSnapshotLocation();
 		Snapshot stored = snapshotLocation == null || !config.storageSavingsUseSnapshots()
 			? null : snapshots.latest(snapshotLocation);
-		return stored != null && stored.getQuantities().containsKey(itemId);
+		return stored == null ? 0 : stored.getQuantities().getOrDefault(itemId, 0);
 	}
 
 	/**
@@ -404,7 +412,7 @@ public class StorageSavingsFeature implements BankFeature
 		Map<Integer, List<String>> flagged = new HashMap<>();
 		Map<String, List<Integer>> itemsByLocation = new LinkedHashMap<>();
 		Set<String> pohLocations = new HashSet<>();
-		Set<Integer> skippedAsStored = new HashSet<>();
+		Set<Integer> alsoStored = new HashSet<>();
 
 		for (int itemId : bankItems)
 		{
@@ -416,13 +424,14 @@ public class StorageSavingsFeature implements BankFeature
 			List<String> where = new ArrayList<>();
 			for (StorageLocation location : StorageLocation.forItem(itemId))
 			{
-				if (location.isEnabled(config) && alreadyStored(location, itemId))
+				if (location.isEnabled(config))
 				{
-					skippedAsStored.add(itemId);
-				}
-				else if (location.isEnabled(config))
-				{
-					where.add(location.getDisplayName());
+					int stored = storedCount(location, itemId);
+					if (stored > 0)
+					{
+						alsoStored.add(itemId);
+					}
+					where.add(stored > 0 ? location.getDisplayName() + " (" + stored + " stored)" : location.getDisplayName());
 					itemsByLocation.computeIfAbsent(location.getDisplayName(), k -> new ArrayList<>()).add(itemId);
 					if (location.isPoh())
 					{
@@ -468,7 +477,7 @@ public class StorageSavingsFeature implements BankFeature
 			.collect(Collectors.toList());
 
 		log.debug("{} storable items in bank across {} locations", flagged.size(), ranking.size());
-		publish(new StorageSavingsState.Results(true, bankSnapshotAt, skippedAsStored.size(), Map.copyOf(flagged), ranking));
+		publish(new StorageSavingsState.Results(true, bankSnapshotAt, alsoStored.size(), Map.copyOf(flagged), ranking));
 	}
 
 	private void publish(StorageSavingsState.Results results)
