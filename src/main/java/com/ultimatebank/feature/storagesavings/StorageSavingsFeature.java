@@ -87,6 +87,9 @@ public class StorageSavingsFeature implements BankFeature
 	private StorageSavingsTagTab tagTab;
 
 	@Inject
+	private StorableTitlesOverlay titlesOverlay;
+
+	@Inject
 	private StorageSavingsState state;
 
 	@Inject
@@ -110,6 +113,7 @@ public class StorageSavingsFeature implements BankFeature
 	public void startUp()
 	{
 		overlayManager.add(overlay);
+		overlayManager.add(titlesOverlay);
 
 		panel = new StorageSavingsPanel();
 		navButton = NavigationButton.builder()
@@ -135,6 +139,7 @@ public class StorageSavingsFeature implements BankFeature
 	public void shutDown()
 	{
 		overlayManager.remove(overlay);
+		overlayManager.remove(titlesOverlay);
 		clientToolbar.removeNavigation(navButton);
 		navButton = null;
 		panel = null;
@@ -173,6 +178,7 @@ public class StorageSavingsFeature implements BankFeature
 				syncPanel();
 				return;
 			case "storageSavingsTagTab":
+			case "storageSavingsTagTabGroups":
 				clientThread.invokeLater(tagTab::sync);
 				return;
 			case "storageSavingsMarker":
@@ -376,12 +382,16 @@ public class StorageSavingsFeature implements BankFeature
 			}
 		}
 
+		Map<Integer, String> names = new HashMap<>();
 		List<StorageSavingsState.LocationSavings> ranking = itemsByLocation.entrySet().stream()
-			.map(e -> new StorageSavingsState.LocationSavings(e.getKey(), pohLocations.contains(e.getKey()),
-				e.getValue().stream()
-					.map(id -> itemManager.getItemComposition(id).getName())
-					.sorted(String.CASE_INSENSITIVE_ORDER)
-					.collect(Collectors.toList())))
+			.map(e ->
+			{
+				List<Integer> ids = new ArrayList<>(e.getValue());
+				ids.forEach(id -> names.computeIfAbsent(id, k -> itemManager.getItemComposition(k).getName()));
+				ids.sort(Comparator.comparing(names::get, String.CASE_INSENSITIVE_ORDER));
+				return new StorageSavingsState.LocationSavings(e.getKey(), pohLocations.contains(e.getKey()),
+					ids.stream().map(names::get).collect(Collectors.toList()), List.copyOf(ids));
+			})
 			.sorted(Comparator.comparingInt((StorageSavingsState.LocationSavings l) -> l.getItemNames().size()).reversed()
 				.thenComparing(StorageSavingsState.LocationSavings::getName))
 			.collect(Collectors.toList());
@@ -393,7 +403,7 @@ public class StorageSavingsFeature implements BankFeature
 	private void publish(StorageSavingsState.Results results)
 	{
 		state.set(results);
-		tagTab.setItems(results.getFlagged().keySet());
+		tagTab.setItems(results.getFlagged().keySet(), results.getRanking());
 		StorageSavingsPanel panel = this.panel;
 		if (panel != null)
 		{

@@ -81,11 +81,24 @@ public interface UltimateBankConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "storageSavingsTagTabGroups",
+		name = "Group storable tab",
+		description = "In the 'storable' tab, group items by the container they fit in, with a title above each group "
+			+ "(most bank slots freed first). An item that fits several containers shows in each group.",
+		section = storageSavingsSection,
+		position = 4
+	)
+	default boolean storageSavingsTagTabGroups()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "storageSavingsPanel",
 		name = "Sidebar panel",
 		description = "Show a sidebar panel ranking storage locations by how many bank slots they would free",
 		section = storageSavingsSection,
-		position = 4
+		position = 5
 	)
 	default boolean storageSavingsPanel()
 	{
@@ -97,7 +110,7 @@ public interface UltimateBankConfig extends Config
 		name = "Never flag best-in-slot",
 		description = "Don't flag best-in-slot items such as skillcapes, max cape or Ancestral, even if they could be stored",
 		section = storageSavingsSection,
-		position = 5
+		position = 6
 	)
 	default boolean storageSavingsKeepBis()
 	{
@@ -110,7 +123,7 @@ public interface UltimateBankConfig extends Config
 		description = "Comma-separated item names, item IDs or wildcards (e.g. *cape*) to never flag.<br>"
 			+ "Tip: shift-right-click a marked bank item to ignore or unignore it.",
 		section = storageSavingsSection,
-		position = 6
+		position = 7
 	)
 	default String storageSavingsIgnored()
 	{
@@ -129,7 +142,7 @@ public interface UltimateBankConfig extends Config
 		name = "STASH units",
 		description = "Flag items that could be stored in a clue scroll STASH unit",
 		section = storageSavingsSection,
-		position = 7
+		position = 8
 	)
 	default boolean storageSavingsStash()
 	{
@@ -142,7 +155,7 @@ public interface UltimateBankConfig extends Config
 		description = "Only count STASH units you've built and haven't filled yet.<br>"
 			+ "Open the STASH chart in your POH or Watson's noticeboard once to load which units are filled.",
 		section = storageSavingsSection,
-		position = 8
+		position = 9
 	)
 	default boolean storageSavingsStashBuiltOnly()
 	{

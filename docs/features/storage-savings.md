@@ -15,6 +15,9 @@ After the bank has been opened this session:
 - **`storable` tag tab:** a virtual bank tag (core `TagManager.registerTag`) showing only flagged items. The tab is
   added to the Bank Tags tab list and removed again when the option or feature is turned off. A user's own tab
   with the same name is never removed.
+- **Grouped storable tab** (default on): the `storable` tab gets a core layout with one group per container, a title
+  and divider line above each (drawn by `StorableTitlesOverlay`), ordered most bank slots freed first. An item that
+  fits several containers appears in each group. Turning it off removes only the layout we created.
 - **Ignore list:** config text box (names, IDs, `*` wildcards; case and space insensitive; a shared name ignores
   all items with that name), plus shift-right-click on a marked bank item › "Ignore storable" / "Unignore storable".
   Unignore only removes exact entries, and wildcards stay.
@@ -35,6 +38,7 @@ Section "Storage savings":
 | `storageSavingsMarker` | boolean | true |
 | `storageSavingsMarkerColor` | Color | (255,200,0) |
 | `storageSavingsTagTab` | boolean | true |
+| `storageSavingsTagTabGroups` | boolean | true |
 | `storageSavingsPanel` | boolean | true |
 | `storageSavingsKeepBis` | boolean | true |
 | `storageSavingsIgnored` | String | "" |
@@ -60,6 +64,10 @@ Internal (not shown): `storageSavingsTagTabCreated` (global), `storageSavingsSta
 - Tests: `IgnoreListTest`, `data/StorageLocationTest`.
 
 ## In-game test checklist
+- [ ] `storable` tab: items grouped under container titles with divider lines, biggest group first; scrolling keeps
+      titles on their rows and inside the bank; an item fitting two containers shows in both groups
+- [ ] Ignore an item / toggle a location: groups update while the tab is open
+- [ ] "Group storable tab" off: plain ungrouped tab, no titles; on again: grouped
 - [ ] Open the bank. Storable items get a yellow corner marker, and hovering lists where they can go
 - [ ] Sidebar chest icon › panel ranks locations with slot counts; POH ones orange; click to expand/collapse
 - [ ] Bank shows a `storable` tag tab (treasure chest icon); opening it shows only marked items

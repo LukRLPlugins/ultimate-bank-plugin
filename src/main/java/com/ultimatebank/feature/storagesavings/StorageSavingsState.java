@@ -54,5 +54,7 @@ class StorageSavingsState
 		boolean poh;
 		/** Names of the flagged items it could hold, sorted */
 		List<String> itemNames;
+		/** IDs of the same items, in the same order */
+		List<Integer> itemIds;
 	}
 }
