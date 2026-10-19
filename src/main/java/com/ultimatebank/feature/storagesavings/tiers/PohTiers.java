@@ -9,7 +9,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -19,7 +18,6 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.game.ItemManager;
 
 /**
  * The tier of each costume room storage (from config, else auto-detected per account) and each storage's sets.
@@ -38,7 +36,6 @@ public class PohTiers
 	private final ConfigManager configManager;
 	private final UltimateBankConfig config;
 	private final Gson gson;
-	private final ItemManager itemManager;
 
 	private Map<PohStorage, List<TierPlanner.StorageSet>> sets;
 	/** Ticks with no new costume room objects before a house load counts as finished */
@@ -49,12 +46,11 @@ public class PohTiers
 	private int quietTicksLeft;
 
 	@Inject
-	PohTiers(ConfigManager configManager, UltimateBankConfig config, Gson gson, ItemManager itemManager)
+	PohTiers(ConfigManager configManager, UltimateBankConfig config, Gson gson)
 	{
 		this.configManager = configManager;
 		this.config = config;
 		this.gson = gson;
-		this.itemManager = itemManager;
 	}
 
 	/**
@@ -133,7 +129,7 @@ public class PohTiers
 	}
 
 	/**
-	 * @return the storage's sets with item IDs; items in no wiki set count as their own set
+	 * @return the storage's sets (item IDs from storage-sets.json); our items in no wiki set count as their own set
 	 */
 	public List<TierPlanner.StorageSet> sets(PohStorage storage)
 	{
@@ -163,46 +159,25 @@ public class PohTiers
 		Map<PohStorage, List<TierPlanner.StorageSet>> result = new EnumMap<>(PohStorage.class);
 		for (PohStorage storage : PohStorage.values())
 		{
-			// Name -> IDs among the items this storage can hold
-			Map<String, Set<Integer>> idsByName = new HashMap<>();
-			for (int itemId : storage.getLocation().getItemIds())
-			{
-				idsByName.computeIfAbsent(normalize(itemManager.getItemComposition(itemId).getName()), k -> new HashSet<>()).add(itemId);
-			}
-
 			List<TierPlanner.StorageSet> storageSets = new ArrayList<>();
 			Set<Integer> covered = new HashSet<>();
-			int unresolved = 0;
 			for (WikiSet wiki : raw == null ? Collections.<WikiSet>emptyList() : raw.getOrDefault(storage.name(), Collections.emptyList()))
 			{
-				Set<Integer> ids = new HashSet<>();
-				for (String name : wiki.items)
+				if (wiki.ids != null && !wiki.ids.isEmpty())
 				{
-					Set<Integer> matched = idsByName.get(normalize(name));
-					if (matched == null)
-					{
-						unresolved++;
-					}
-					else
-					{
-						ids.addAll(matched);
-					}
-				}
-				if (!ids.isEmpty())
-				{
-					covered.addAll(ids);
-					storageSets.add(new TierPlanner.StorageSet(wiki.set, ids, wiki.accomplishment, clueTier(wiki.tier)));
+					covered.addAll(wiki.ids);
+					storageSets.add(new TierPlanner.StorageSet(wiki.set, new HashSet<>(wiki.ids), wiki.accomplishment, clueTier(wiki.tier)));
 				}
 			}
+			// Items on our own lists that no wiki set covers count as their own set
 			for (int itemId : storage.getLocation().getItemIds())
 			{
 				if (covered.add(itemId))
 				{
-					storageSets.add(new TierPlanner.StorageSet(itemManager.getItemComposition(itemId).getName(),
-						Set.of(itemId), false, -1));
+					storageSets.add(new TierPlanner.StorageSet(String.valueOf(itemId), Set.of(itemId), false, -1));
 				}
 			}
-			log.debug("{}: {} sets, {} wiki piece names not in our item list", storage, storageSets.size(), unresolved);
+			log.debug("{}: {} sets", storage, storageSets.size());
 			result.put(storage, storageSets);
 		}
 		return result;
@@ -224,16 +199,11 @@ public class PohTiers
 		}
 	}
 
-	private static String normalize(String name)
-	{
-		return name.toLowerCase(Locale.ROOT).replace(" ", "");
-	}
-
 	/** One entry of storage-sets.json */
 	private static final class WikiSet
 	{
 		String set;
-		List<String> items;
+		List<Integer> ids;
 		String tier;
 		boolean accomplishment;
 	}
