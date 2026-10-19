@@ -7,8 +7,7 @@ public enum MarkerStyle
 {
 	ITEM_OUTLINE("Item outline"),
 	BOX_OUTLINE("Box outline"),
-	CORNER_TRIANGLE("Corner triangle"),
-	CORNER_ICON("Corner icon");
+	CORNER_TRIANGLE("Corner triangle");
 
 	private final String label;
 
@@ -45,29 +44,6 @@ public enum MarkerStyle
 		public boolean isBottom()
 		{
 			return this == BOTTOM_LEFT || this == BOTTOM_RIGHT;
-		}
-
-		@Override
-		public String toString()
-		{
-			return label;
-		}
-	}
-
-	public enum Icon
-	{
-		HOUSE("House"),
-		CHEST("Chest"),
-		STAR("Star"),
-		EXCLAMATION("Exclamation mark"),
-		ARROW("Arrow"),
-		CUSTOM_ITEM("Custom item (by ID)");
-
-		private final String label;
-
-		Icon(String label)
-		{
-			this.label = label;
 		}
 
 		@Override

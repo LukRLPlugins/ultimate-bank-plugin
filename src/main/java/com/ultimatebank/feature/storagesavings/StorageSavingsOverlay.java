@@ -2,8 +2,6 @@ package com.ultimatebank.feature.storagesavings;
 
 import com.ultimatebank.UltimateBankConfig;
 import com.ultimatebank.feature.storagesavings.marker.MarkerGeometry;
-import com.ultimatebank.feature.storagesavings.marker.MarkerIcons;
-import com.ultimatebank.feature.storagesavings.marker.MarkerStyle;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -26,7 +24,7 @@ import net.runelite.client.ui.overlay.tooltip.Tooltip;
 import net.runelite.client.ui.overlay.tooltip.TooltipManager;
 
 /**
- * Marks flagged bank items in the configured style (item outline, box outline, corner triangle or corner icon), and
+ * Marks flagged bank items in the configured style (item outline, box outline or corner triangle), and
  * names where they can be stored on hover.
  */
 @Singleton
@@ -87,9 +85,6 @@ class StorageSavingsOverlay extends WidgetItemOverlay
 			case BOX_OUTLINE:
 				drawBox(graphics, bounds, color);
 				break;
-			case CORNER_ICON:
-				drawIcon(graphics, bounds, color);
-				break;
 			default:
 				drawTriangle(graphics, bounds, color);
 				break;
@@ -120,22 +115,6 @@ class StorageSavingsOverlay extends WidgetItemOverlay
 		// Inset by half the stroke so the box stays inside the slot
 		graphics.drawRect(bounds.x + t / 2, bounds.y + t / 2, bounds.width - t, bounds.height - t);
 		graphics.setStroke(previous);
-	}
-
-	private void drawIcon(Graphics2D graphics, Rectangle bounds, Color color)
-	{
-		int size = config.storageSavingsMarkerSize();
-		java.awt.Point at = MarkerGeometry.iconOrigin(bounds, config.storageSavingsMarkerCorner(), size);
-		MarkerStyle.Icon icon = config.storageSavingsMarkerIcon();
-		if (icon == MarkerStyle.Icon.CUSTOM_ITEM)
-		{
-			BufferedImage sprite = itemManager.getImage(config.storageSavingsMarkerIconItem());
-			graphics.drawImage(sprite, at.x, at.y, size, size, null);
-		}
-		else
-		{
-			graphics.drawImage(MarkerIcons.get(icon, size, color), at.x, at.y, null);
-		}
 	}
 
 	private void drawItemOutline(Graphics2D graphics, int itemId, int quantity, Rectangle bounds, Color color)
