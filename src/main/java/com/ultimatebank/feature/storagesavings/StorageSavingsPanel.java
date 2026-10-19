@@ -23,6 +23,8 @@ import net.runelite.client.ui.PluginPanel;
  */
 class StorageSavingsPanel extends PluginPanel
 {
+	private static final Color UPGRADE = new Color(120, 200, 120);
+
 	private final JLabel summary = new JLabel();
 	private final JPanel ranking = new JPanel();
 	/** Locations the user has expanded, kept across updates */
@@ -89,6 +91,27 @@ class StorageSavingsPanel extends PluginPanel
 		ranking.repaint();
 	}
 
+	/**
+	 * @return e.g. "Oak · +3 with Teak", "not built · +5 with Oak", "tier unknown: visit your costume room", or null
+	 */
+	private static String tierText(StorageSavingsState.LocationSavings location)
+	{
+		String tier = location.getTier();
+		if (tier == null)
+		{
+			return null;
+		}
+		if ("tier unknown".equals(tier))
+		{
+			return "tier unknown: visit your costume room";
+		}
+		if (location.getNextTierExtra() > 0)
+		{
+			return tier + " · +" + location.getNextTierExtra() + " with " + location.getNextTier();
+		}
+		return tier;
+	}
+
 	private JPanel row(StorageSavingsState.LocationSavings location)
 	{
 		JPanel row = new JPanel(new BorderLayout());
@@ -107,6 +130,15 @@ class StorageSavingsPanel extends PluginPanel
 		heading.setOpaque(false);
 		heading.add(name, BorderLayout.WEST);
 		heading.add(count, BorderLayout.EAST);
+
+		String tierText = tierText(location);
+		if (tierText != null)
+		{
+			JLabel tier = new JLabel(tierText);
+			tier.setFont(FontManager.getRunescapeSmallFont());
+			tier.setForeground(location.getNextTierExtra() > 0 ? UPGRADE : ColorScheme.LIGHT_GRAY_COLOR);
+			heading.add(tier, BorderLayout.SOUTH);
+		}
 		row.add(heading, BorderLayout.NORTH);
 
 		boolean open = expanded.contains(location.getName());

@@ -5,6 +5,7 @@ One-off data converters used when porting from other plugins. Run them on a shal
 
 | Script | Produces | Source |
 |---|---|---|
+| `convert_wiki_storage_sets.py <raw wiki dir> <out.json>` | `src/main/resources/com/ultimatebank/feature/storagesavings/storage-sets.json` | OSRS Wiki "<storage> space" pages (`?action=raw`) |
 | `convert_wbs_locations.py <conv dir> <locations dir> <out dir>` | `feature/storagesavings/data/*Items.java` (legacy ItemID to gameval) | Wasted Bank Space |
 
 `convert_wbs_locations.py` needs a conv dir holding `legacy.txt` / `gameval.txt` (`javap -constants` dumps of

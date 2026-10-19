@@ -19,6 +19,14 @@ After the bank has been opened this session:
   bank as last seen (panel says how old). POH storage **stacks** (confirmed in-game, e.g. Bruma torch in the magic
   wardrobe), so copies already stored never stop a suggestion; the tooltip shows "(N stored)" and the panel counts
   them.
+- **POH tiers** (#14): fancy dress box, armour case, magic wardrobe, cape rack and treasure chest only get
+  suggestions that fit the tier you've built. Tier = config dropdown, or **auto-detected** from the furniture object
+  (or its empty build space = not built) when you're in your costume room, saved per account. Count-limited storages
+  get the sets that free the most bank slots; a set already stored keeps its slot; cape rack limits only capes of
+  accomplishment; treasure chest takes rewards up to its clue tier. Panel rows show the tier and "+N with <next>"
+  (also for storages that hold nothing yet). Unknown tier = no limit, "tier unknown: visit your costume room".
+  Sets/pieces come from the OSRS Wiki via `tools/convert_wiki_storage_sets.py` → `storage-sets.json`, matched to our
+  item IDs by name at runtime.
 - **Grouped storable tab** (default on): the `storable` tab gets a core layout with one group per container, a title
   and divider line above each (drawn by `StorableTitlesOverlay`), ordered most bank slots freed first. An item that
   fits several containers appears in each group. Turning it off removes only the layout we created.
@@ -44,6 +52,9 @@ Section "Storage savings":
 | `storageSavingsTagTab` | boolean | true |
 | `storageSavingsTagTabGroups` | boolean | true |
 | `storageSavingsUseSnapshots` | boolean | true |
+
+Section "Storage savings: POH tiers": `storageSavingsTier<Storage>` dropdowns (Auto-detect / Not built / tiers).
+Detected tiers per RS profile: `storageSavingsTierDetected.<STORAGE>` (tier index, -1 = not built).
 | `storageSavingsPanel` | boolean | true |
 | `storageSavingsKeepBis` | boolean | true |
 | `storageSavingsIgnored` | String | "" |
@@ -69,6 +80,12 @@ Internal (not shown): `storageSavingsTagTabCreated` (global), `storageSavingsSta
 - Tests: `IgnoreListTest`, `data/StorageLocationTest`.
 
 ## In-game test checklist
+- [ ] Enter your costume room: tiers are detected (log "Detected FANCY_DRESS_BOX tier Oak" etc.); panel rows show
+      the tier, e.g. "POH fancy dress box · Oak · +3 with Teak"
+- [ ] Oak fancy dress box with 3+ costumes banked: only the 2 costumes with the most banked pieces are suggested
+- [ ] Set a dropdown to a different tier: suggestions and "+N with …" update; back to Auto-detect restores
+- [ ] Set one to "Not built": its row shows "not built · +N with Oak" and nothing is suggested for it
+- [ ] Cape rack at oak: skillcapes not suggested, other capes are; treasure chest at oak: only beginner/easy rewards
 - [ ] `storable` tab: items grouped under container titles with divider lines, biggest group first; scrolling keeps
       titles on their rows and inside the bank; an item fitting two containers shows in both groups
 - [ ] Ignore an item / toggle a location: groups update while the tab is open
