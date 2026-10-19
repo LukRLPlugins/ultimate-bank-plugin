@@ -11,3 +11,5 @@ One-off data converters used when porting from other plugins. Run them on a shal
 `convert_wbs_locations.py` needs a conv dir holding `legacy.txt` / `gameval.txt` (`javap -constants` dumps of
 `net.runelite.api.ItemID` and `net.runelite.api.gameval.ItemID`, one `NAME = value` per line) and `header.txt`.
 `header.txt` must use `Copyright (c) 2026, Luk` for our line (CLAUDE.md › Identity).
+
+`make_icon/MakeIcon.java` draws the Plugin Hub `icon.png` (48x72): `java tools/make_icon/MakeIcon.java icon.png [preview.png]`.
