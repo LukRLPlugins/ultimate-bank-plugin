@@ -67,6 +67,8 @@ page in `docs/attribution.md` › Game data from the OSRS Wiki. This keeps the r
 - `docs/attribution.md`: credits for ported code.
 
 ## Working style
+- Stage files **by path** and check `git status` before committing; never `git add -A` blindly. The user drops their
+  own files in the repo folder (e.g. raw screenshots), and an unchecked add once pushed them to the public repo.
 - Small, focused commits, one feature or fix each. No reformatting mixed with logic (Hub reviewers read the diffs).
 - Match the existing code style: tabs, Allman braces (RuneLite style), Lombok `@Slf4j`.
 - When a feature is done, give the user a concrete in-game test checklist and wait for their confirmation (AGENTS.md › Testing).

@@ -13,3 +13,6 @@ nbproject/
 *.class
 *.tmp
 .claude/settings.local.json
+
+# Unprocessed screenshots (may show account names, chat, etc.); only cleaned copies go in docs/images
+raw screenshots/
