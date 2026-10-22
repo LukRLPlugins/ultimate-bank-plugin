@@ -119,6 +119,9 @@ public class StorageSavingsFeature implements BankFeature
 	@Inject
 	private SettingsOpener settingsOpener;
 
+	@Inject
+	private CharacterSettings characterSettings;
+
 	private final Consumer<SnapshotLocation> snapshotListener = this::onSnapshotsChanged;
 
 	/** Non-placeholder item IDs in the bank, or null until the bank has been seen */
@@ -139,6 +142,7 @@ public class StorageSavingsFeature implements BankFeature
 	@Override
 	public void startUp()
 	{
+		characterSettings.load();
 		overlayManager.add(overlay);
 		overlayManager.add(titlesOverlay);
 
@@ -197,6 +201,7 @@ public class StorageSavingsFeature implements BankFeature
 	@Subscribe
 	public void onConfigChanged(ConfigChanged event)
 	{
+		characterSettings.onConfigChanged(event);
 		if (!UltimateBankConfig.GROUP.equals(event.getGroup()) || !event.getKey().startsWith(KEY_PREFIX))
 		{
 			return;
@@ -235,6 +240,8 @@ public class StorageSavingsFeature implements BankFeature
 	@Subscribe
 	public void onRuneScapeProfileChanged(RuneScapeProfileChanged event)
 	{
+		// The new character's tiers, locations and STASH options
+		characterSettings.load();
 		bankItems = null;
 		stashTracker.load();
 		recompute();

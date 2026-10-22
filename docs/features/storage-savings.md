@@ -1,6 +1,11 @@
 # Ultimate Bank Savings (Storage savings)
 
 - **Package:** `com.ultimatebank.feature.storagesavings`
+- **Per character:** the POH tier dropdowns, location toggles and STASH options are saved per character
+  (`CharacterSettings`): each character's values live in its RS profile (`character.<key>`) and are loaded into the
+  settings on login, so the Configuration panel shows the logged-in character's values. A character seen for the
+  first time keeps the current values. Everything else (marker style, panel, ignore list) is shared. Snapshots,
+  detected tiers and filled STASH units were already per character.
 - **Shown as:** "Ultimate Bank Savings" (panel, sidebar button; settings sections "Bank Savings: …"). Code and config keys keep the
   original `storageSavings` name (keys are released, so they never change).
 - **Status:** see docs/roadmap.md
