@@ -61,7 +61,7 @@ A sidebar panel (magnifier icon) that remembers your bank and each POH costume r
 - **History:** what each visit to the bank or a storage took out or put in, newest first, with the value change.
 
 Open your bank and each POH storage once so they're recorded. On by default for new installs; if you're updating,
-turn it on under **Configuration › Ultimate Bank › Ultimate Bank Search: General**.
+turn it on under **Configuration › Ultimate Bank › Bank Search: General**.
 
 Find everything under **Configuration › Ultimate Bank**. Each part can be turned off on its own.
 

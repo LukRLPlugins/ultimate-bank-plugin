@@ -1,7 +1,7 @@
 # Ultimate Bank Savings (Storage savings)
 
 - **Package:** `com.ultimatebank.feature.storagesavings`
-- **Shown as:** "Ultimate Bank Savings" (panel, sidebar button, settings sections). Code and config keys keep the
+- **Shown as:** "Ultimate Bank Savings" (panel, sidebar button; settings sections "Bank Savings: …"). Code and config keys keep the
   original `storageSavings` name (keys are released, so they never change).
 - **Status:** see docs/roadmap.md
 - **Sources:** Wasted Bank Space by Riley McGee (https://github.com/mcgeer/WastedBankSpace, Hub commit `1cb3b28`),
@@ -47,7 +47,7 @@ icons (upstream #108); tooltip names every location (upstream #143); item lists 
 data-fix PRs; no persistence of the bank between sessions (not requested).
 
 ## Config
-Section "Ultimate Bank Savings: General":
+Section "Bank Savings: General":
 | Key | Type | Default |
 |---|---|---|
 | `storageSavingsEnabled` | boolean | true |
@@ -61,7 +61,7 @@ Section "Ultimate Bank Savings: General":
 | `storageSavingsTagTabGroups` | boolean | true |
 | `storageSavingsUseSnapshots` | boolean | true |
 
-Section "Ultimate Bank Savings: Tiers": `storageSavingsTier<Storage>` dropdowns (Auto-detect / Not built / tiers).
+Section "Bank Savings: Tiers": `storageSavingsTier<Storage>` dropdowns (Auto-detect / Not built / tiers).
 Detected tiers per RS profile: `storageSavingsTierDetected.<STORAGE>` (tier index, -1 = not built).
 | `storageSavingsPanel` | boolean | true |
 | `storageSavingsKeepBis` | boolean | true |
@@ -69,7 +69,7 @@ Detected tiers per RS profile: `storageSavingsTierDetected.<STORAGE>` (tier inde
 | `storageSavingsStash` | boolean | false |
 | `storageSavingsStashBuiltOnly` | boolean | true |
 
-Section "Ultimate Bank Savings: Locations": one `storageSavings<Location>` toggle per `StorageLocation`, all on except
+Section "Bank Savings: Locations": one `storageSavings<Location>` toggle per `StorageLocation`, all on except
 armour case, cape rack and pet house.
 
 Internal (not shown): `storageSavingsTagTabCreated` (global), `storageSavingsStashFilled` and

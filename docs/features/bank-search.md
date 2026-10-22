@@ -28,7 +28,7 @@
 Dropped for v1 (follow-ups): equipment stat comparison, STASH units in the search.
 
 ## Config
-Section "Ultimate Bank Search: General": `bankSearchEnabled` (true for new installs; set false once for existing installs by
+Section "Bank Search: General": `bankSearchEnabled` (true for new installs; set false once for existing installs by
 `core/FeatureRollout`), `bankSearchSnapshotCount` ("Visits kept", 5, 2–20, also used by core snapshots),
 `bankSearchWarnHours` (24), `bankSearchStaleHours` (168).
 Storage savings: `storageSavingsUseSnapshots` (true).

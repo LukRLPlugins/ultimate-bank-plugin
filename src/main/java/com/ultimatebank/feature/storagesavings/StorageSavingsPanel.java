@@ -49,7 +49,7 @@ class StorageSavingsPanel extends PluginPanel
 		summary.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		header.add(summary, BorderLayout.CENTER);
 		JButton settings = new JButton("Edit storage locations & tiers");
-		settings.setToolTipText("Opens the settings: expand \"Ultimate Bank Savings: Locations\" or \"Ultimate Bank Savings: Tiers\"");
+		settings.setToolTipText("Opens the settings: expand \"Bank Savings: Locations\" or \"Bank Savings: Tiers\"");
 		settings.setFocusPainted(false);
 		settings.addActionListener(e -> openSettings.run());
 		header.add(settings, BorderLayout.SOUTH);
