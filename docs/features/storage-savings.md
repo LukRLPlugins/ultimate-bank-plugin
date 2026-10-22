@@ -1,6 +1,13 @@
-# Storage savings
+# Ultimate Bank Savings (Storage savings)
 
 - **Package:** `com.ultimatebank.feature.storagesavings`
+- **Per character:** the POH tier dropdowns, location toggles and STASH options are saved per character
+  (`CharacterSettings`): each character's values live in its RS profile (`character.<key>`) and are loaded into the
+  settings on login, so the Configuration panel shows the logged-in character's values. A character seen for the
+  first time keeps the current values. Everything else (marker style, panel, ignore list) is shared. Snapshots,
+  detected tiers and filled STASH units were already per character.
+- **Shown as:** "Ultimate Bank Savings" (panel, sidebar button; settings sections "Bank Savings: …"). Code and config keys keep the
+  original `storageSavings` name (keys are released, so they never change).
 - **Status:** see docs/roadmap.md
 - **Sources:** Wasted Bank Space by Riley McGee (https://github.com/mcgeer/WastedBankSpace, Hub commit `1cb3b28`),
   plus unmerged PRs: STASH units and tag tab by Brettgod1355 (#136, #146, branch `stash-units` @ `e372558`),
@@ -45,7 +52,7 @@ icons (upstream #108); tooltip names every location (upstream #143); item lists 
 data-fix PRs; no persistence of the bank between sessions (not requested).
 
 ## Config
-Section "Storage savings":
+Section "Bank Savings: General":
 | Key | Type | Default |
 |---|---|---|
 | `storageSavingsEnabled` | boolean | true |
@@ -59,7 +66,7 @@ Section "Storage savings":
 | `storageSavingsTagTabGroups` | boolean | true |
 | `storageSavingsUseSnapshots` | boolean | true |
 
-Section "Storage savings: POH tiers": `storageSavingsTier<Storage>` dropdowns (Auto-detect / Not built / tiers).
+Section "Bank Savings: Tiers": `storageSavingsTier<Storage>` dropdowns (Auto-detect / Not built / tiers).
 Detected tiers per RS profile: `storageSavingsTierDetected.<STORAGE>` (tier index, -1 = not built).
 | `storageSavingsPanel` | boolean | true |
 | `storageSavingsKeepBis` | boolean | true |
@@ -67,7 +74,7 @@ Detected tiers per RS profile: `storageSavingsTierDetected.<STORAGE>` (tier inde
 | `storageSavingsStash` | boolean | false |
 | `storageSavingsStashBuiltOnly` | boolean | true |
 
-Section "Storage savings: locations": one `storageSavings<Location>` toggle per `StorageLocation`, all on except
+Section "Bank Savings: Locations": one `storageSavings<Location>` toggle per `StorageLocation`, all on except
 armour case, cape rack and pet house.
 
 Internal (not shown): `storageSavingsTagTabCreated` (global), `storageSavingsStashFilled` and

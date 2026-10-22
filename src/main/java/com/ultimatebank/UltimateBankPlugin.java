@@ -3,8 +3,10 @@ package com.ultimatebank;
 import com.google.inject.Provides;
 import com.ultimatebank.core.BankFeature;
 import com.ultimatebank.core.FeatureManager;
+import com.ultimatebank.core.FeatureRollout;
 import com.ultimatebank.core.snapshots.StorageSnapshots;
 import com.ultimatebank.feature.storagesavings.StorageSavingsFeature;
+import com.ultimatebank.feature.banksearch.BankSearchFeature;
 import java.util.List;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -23,8 +25,8 @@ import net.runelite.client.plugins.banktags.BankTagsPlugin;
 @PluginDependency(BankTagsPlugin.class)
 @PluginDescriptor(
 	name = "Ultimate Bank",
-	description = "Bank toolkit: see what could be stored outside your bank and which storage upgrades free the most space",
-	tags = {"bank", "storage", "poh", "costume", "space", "stash", "tackle box", "seed vault", "wasted"}
+	description = "Bank toolkit: see what could be stored outside your bank, which storage upgrades free the most space, and search everything you own",
+	tags = {"bank", "storage", "poh", "costume", "space", "stash", "tackle box", "seed vault", "wasted", "search", "find", "history"}
 )
 public class UltimateBankPlugin extends Plugin
 {
@@ -32,7 +34,16 @@ public class UltimateBankPlugin extends Plugin
 	 * Every feature in the plugin. Add new features here (order = start order).
 	 */
 	private static final List<Class<? extends BankFeature>> FEATURES = List.of(
-		StorageSavingsFeature.class
+		StorageSavingsFeature.class,
+		BankSearchFeature.class
+	);
+
+	/**
+	 * Enable keys of features added after v1.0.0: on for new installs, off for people updating (see
+	 * {@link FeatureRollout}). Add every new feature's toggle here; never remove one.
+	 */
+	private static final List<String> NEW_FEATURE_TOGGLES = List.of(
+		"bankSearchEnabled"
 	);
 
 	@Inject
@@ -40,6 +51,9 @@ public class UltimateBankPlugin extends Plugin
 
 	@Inject
 	private FeatureManager featureManager;
+
+	@Inject
+	private FeatureRollout featureRollout;
 
 	@Inject
 	private EventBus eventBus;
@@ -54,6 +68,7 @@ public class UltimateBankPlugin extends Plugin
 		eventBus.register(storageSnapshots);
 		clientThread.invokeLater(storageSnapshots::load);
 
+		featureRollout.apply(NEW_FEATURE_TOGGLES);
 		featureManager.load(FEATURES);
 		log.debug("Loaded {} features", FEATURES.size());
 		clientThread.invokeLater(featureManager::sync);

@@ -32,6 +32,8 @@ rules, kept verbatim from the example-plugin template; don't edit it, re-sync it
 - `feature/<name>/`: one package per feature. The entry class implements `BankFeature`, is enabled by its own toggle, gets registered on the EventBus only while enabled, and must fully undo itself in `shutDown()`.
 - `UltimateBankConfig`: a single config group `ultimatebank`, with one `@ConfigSection` per feature. Key names are prefixed with the feature name (e.g. `bankValueShowHa`). Keys are permanent once released.
 - Persisting non-config data (saved setups, layouts): use `ConfigManager` with per-profile keys, or `Filepath` per AGENTS.md. Never write raw files.
+- **New features ship on for new installs and off for updates.** Toggles default to `true` and go in
+  `NEW_FEATURE_TOGGLES` in `UltimateBankPlugin`; `core/FeatureRollout` switches them off once on existing installs.
 - To add a feature, follow the `/new-feature` skill.
 
 ## Building on core RuneLite, not around it

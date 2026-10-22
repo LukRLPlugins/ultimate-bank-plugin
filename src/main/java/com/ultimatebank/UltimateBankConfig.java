@@ -21,14 +21,14 @@ public interface UltimateBankConfig extends Config
 	// ---- Storage savings ----
 
 	@ConfigSection(
-		name = "Storage savings",
+		name = "Bank Savings: General",
 		description = "Find banked items that could be stored elsewhere, and which storage upgrades free the most bank space",
 		position = 0
 	)
 	String storageSavingsSection = "storageSavingsSection";
 
 	@ConfigSection(
-		name = "Storage savings: locations",
+		name = "Bank Savings: Locations",
 		description = "Which storage locations to consider",
 		position = 1,
 		closedByDefault = true
@@ -358,7 +358,7 @@ public interface UltimateBankConfig extends Config
 	// ---- Storage savings: POH tiers ----
 
 	@ConfigSection(
-		name = "Storage savings: POH tiers",
+		name = "Bank Savings: Tiers",
 		description = "Which tier of each costume room storage you've built, so only what fits is suggested. "
 			+ "Auto-detect reads it when you're in your costume room.",
 		position = 2,
@@ -394,5 +394,63 @@ public interface UltimateBankConfig extends Config
 	default TierChoice.TreasureChest storageSavingsTierTreasureChest()
 	{
 		return TierChoice.TreasureChest.AUTO_DETECT;
+	}
+
+	// ---- Ultimate Bank Search ----
+
+	@ConfigSection(
+		name = "Bank Search: General",
+		description = "A sidebar panel to search your bank and POH storage, and see what each visit changed",
+		position = 3
+	)
+	String bankSearchSection = "bankSearchSection";
+
+	@ConfigItem(
+		keyName = "bankSearchEnabled",
+		name = "Enable",
+		description = "Add a sidebar panel to search your bank and POH storage (open each once so it's recorded)",
+		section = bankSearchSection,
+		position = 0
+	)
+	default boolean bankSearchEnabled()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "bankSearchSnapshotCount",
+		name = "Visits kept",
+		description = "How many snapshots of each location to keep (one per visit), for the history",
+		section = bankSearchSection,
+		position = 1
+	)
+	@Range(min = 2, max = 20)
+	default int bankSearchSnapshotCount()
+	{
+		return 5;
+	}
+
+	@ConfigItem(
+		keyName = "bankSearchWarnHours",
+		name = "Old after (hours)",
+		description = "Show when a location was last seen in orange once it's this old",
+		section = bankSearchSection,
+		position = 2
+	)
+	default int bankSearchWarnHours()
+	{
+		return 24;
+	}
+
+	@ConfigItem(
+		keyName = "bankSearchStaleHours",
+		name = "Stale after (hours)",
+		description = "Show when a location was last seen in red once it's this old",
+		section = bankSearchSection,
+		position = 3
+	)
+	default int bankSearchStaleHours()
+	{
+		return 168;
 	}
 }

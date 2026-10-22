@@ -1,7 +1,8 @@
 # Ultimate Bank
 
 A bank toolkit for [RuneLite](https://runelite.net). It finds the items in your bank that could live somewhere else,
-and shows which storage upgrades would free up the most bank space.
+shows which storage upgrades would free up the most bank space, and lets you search everything you own across your
+bank and POH storage.
 
 Open your bank and every item that could live somewhere else gets a marker, while the sidebar panel ranks where
 the space would come from:
@@ -13,13 +14,13 @@ the space would come from:
       <sub>Green corner markers on items that could be stored outside the bank</sub>
     </td>
     <td align="center" valign="top">
-      <img src="docs/images/storage-panel.png" alt="Storage savings panel ranking storage by bank slots freed" height="420"><br>
-      <sub>The Storage savings panel: each storage, the bank slots it frees,<br>your POH tier and what the next upgrade adds</sub>
+      <img src="docs/images/storage-panel.png" alt="Ultimate Bank Savings panel ranking storage by bank slots freed" height="420"><br>
+      <sub>The Ultimate Bank Savings panel: each storage, the bank slots it frees,<br>your POH tier and what the next upgrade adds</sub>
     </td>
   </tr>
 </table>
 
-## Storage savings
+## Ultimate Bank Savings
 - **Storable markers:** every banked item that could be stored elsewhere is marked (corner triangle, item outline or
   box outline; colour, size and corner are up to you). Hover it to see
   where: POH costume room (treasure chest, fancy dress box, magic wardrobe, armour case, cape rack, toy box),
@@ -53,6 +54,28 @@ you (or set by hand):
     </td>
   </tr>
 </table>
+
+## Ultimate Bank Search
+A sidebar panel (magnifier icon) that remembers your bank and each POH costume room storage, per account:
+- **Items:** everything you own, grouped by location with item counts, total value and when each was last seen.
+  Search by item or location name to find where something is.
+- **History:** what each visit to the bank or a storage took out or put in, newest first, with the value change.
+
+<table>
+  <tr>
+    <td align="center" valign="top">
+      <img src="docs/images/search-items.png" alt="Ultimate Bank Search items tab: the bank grouped by location with quantities and values" height="420"><br>
+      <sub>Items: everything in a location, most valuable first</sub>
+    </td>
+    <td align="center" valign="top">
+      <img src="docs/images/search-history.png" alt="Ultimate Bank Search history tab: what each bank and POH visit changed" height="420"><br>
+      <sub>History: what each visit took out or put in</sub>
+    </td>
+  </tr>
+</table>
+
+Open your bank and each POH storage once so they're recorded. On by default for new installs; if you're updating,
+turn it on under **Configuration › Ultimate Bank › Bank Search: General**.
 
 Find everything under **Configuration › Ultimate Bank**. Each part can be turned off on its own.
 

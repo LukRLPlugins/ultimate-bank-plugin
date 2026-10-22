@@ -42,14 +42,14 @@ class StorageSavingsPanel extends PluginPanel
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 
 		JPanel header = new JPanel(new BorderLayout(0, 4));
-		JLabel title = new JLabel("Storage savings");
+		JLabel title = new JLabel("Ultimate Bank Savings");
 		title.setFont(FontManager.getRunescapeBoldFont());
 		title.setForeground(Color.WHITE);
 		header.add(title, BorderLayout.NORTH);
 		summary.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
 		header.add(summary, BorderLayout.CENTER);
 		JButton settings = new JButton("Edit storage locations & tiers");
-		settings.setToolTipText("Opens the settings: expand \"Storage savings: locations\" or \"Storage savings: POH tiers\"");
+		settings.setToolTipText("Opens the settings: expand \"Bank Savings: Locations\" or \"Bank Savings: Tiers\"");
 		settings.setFocusPainted(false);
 		settings.addActionListener(e -> openSettings.run());
 		header.add(settings, BorderLayout.SOUTH);

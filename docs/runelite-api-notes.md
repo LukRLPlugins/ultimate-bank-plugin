@@ -65,6 +65,18 @@ Current RuneLite client version at setup: **1.13.2**.
   and an overlay whose `getPlugin()` is that plugin, so `core/SettingsOpener` posts one for a never-added overlay.
   It can't jump to or expand a section.
 
+- **Config defaults aren't saved:** `ConfigManager.setDefaultConfiguration` unsets values equal to the default, so a
+  `@ConfigItem` default can't tell new installs from updates. `getConfigurationKeys("<group>.")` lists the saved keys
+  of the current RuneLite profile **only**: RS-profile (per-account) data lives in a separate store shared by all
+  RuneLite profiles (`profiles2/$rsprofile--1.properties`). Check it with `getRSProfiles()` +
+  `getRSProfileConfigurationKeys(group, profile.getKey(), "")` (`core/FeatureRollout` checks both).
+
+- **Settings are per RuneLite profile, not per character.** Several characters often share one RuneLite profile. For
+  data that belongs to a character use `set/getRSProfileConfiguration` (keyed by account). For a `@ConfigItem` that
+  should differ per character, save a copy per RS profile and load it into the setting on `RuneScapeProfileChanged`
+  (see `storagesavings/CharacterSettings`). `ConfigManager` posts `ConfigChanged` synchronously, so a flag set around
+  your own writes tells them apart from the user's; RS-profile writes have `event.getProfile() != null`.
+
 ## Tooling gotchas
 - The compile hook runs after **every** edit, so when an edit needs new imports, add the imports first or in the
   same edit. Otherwise you get a spurious "cannot find symbol" in between.
