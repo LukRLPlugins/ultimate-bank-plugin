@@ -25,7 +25,7 @@ import net.runelite.client.plugins.banktags.BankTagsPlugin;
 @PluginDependency(BankTagsPlugin.class)
 @PluginDescriptor(
 	name = "Ultimate Bank",
-	description = "Bank toolkit: see what could be stored outside your bank, which storage upgrades free the most space, and search everything you own",
+	description = "Free up bank space and find anything you own: storable item markers, POH upgrade hints, and a bank and POH search",
 	tags = {"bank", "storage", "poh", "costume", "space", "stash", "tackle box", "seed vault", "wasted", "search", "find", "history"}
 )
 public class UltimateBankPlugin extends Plugin

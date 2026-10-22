@@ -1,64 +1,60 @@
 # Ultimate Bank
 
-A bank toolkit for [RuneLite](https://runelite.net). It finds the items in your bank that could live somewhere else,
-shows which storage upgrades would free up the most bank space, and lets you search everything you own across your
-bank and POH storage.
+A bank toolkit for [RuneLite](https://runelite.net) with two sidebar panels:
 
-Open your bank and every item that could live somewhere else gets a marker, while the sidebar panel ranks where
-the space would come from:
+- **Ultimate Bank Savings** finds banked items that could be stored somewhere else, and which storage upgrades free
+  the most bank space.
+- **Ultimate Bank Search** shows everything you own across your bank and POH storage, and what each visit changed.
+
+> **New in 1.2:** Ultimate Bank Search, and settings remembered per character.
+> See the [changelog](CHANGELOG.md) for every version.
+
+## Ultimate Bank Savings
+Open your bank: items that could live somewhere else get a marker, and the panel (chest icon) ranks where the space
+would come from.
 
 <table>
   <tr>
     <td align="center" valign="top">
       <img src="docs/images/bank-markers.png" alt="Bank items with storable markers" height="420"><br>
-      <sub>Green corner markers on items that could be stored outside the bank</sub>
+      <sub>Markers on items that could be stored outside the bank</sub>
     </td>
     <td align="center" valign="top">
       <img src="docs/images/storage-panel.png" alt="Ultimate Bank Savings panel ranking storage by bank slots freed" height="420"><br>
-      <sub>The Ultimate Bank Savings panel: each storage, the bank slots it frees,<br>your POH tier and what the next upgrade adds</sub>
+      <sub>Each storage, the bank slots it frees,<br>your POH tier and what an upgrade adds</sub>
     </td>
   </tr>
 </table>
 
-## Ultimate Bank Savings
-- **Storable markers:** every banked item that could be stored elsewhere is marked (corner triangle, item outline or
-  box outline; colour, size and corner are up to you). Hover it to see
-  where: POH costume room (treasure chest, fancy dress box, magic wardrobe, armour case, cape rack, toy box),
-  bookcase, spice rack, pet house, tackle box, seed vault, tool leprechaun, huntsman's kit, forestry kit, steel key
-  ring, master scroll book, fossil storage, Nightmare Zone, and more. Tooltips also say how many copies a POH storage
-  already holds.
-- **Upgrade ranking:** a sidebar panel (chest icon) ranks storage by how many bank slots it would free, and shows what
-  the best upgrade your Construction level can build adds, e.g. "POH fancy dress box · Oak · +3 with Teak". Click a
-  row to see its items, or "Edit storage locations & tiers" to jump to the settings.
-- **Knows your POH tiers:** visit your costume room and it detects which furniture you've built, then only suggests
-  what fits (an oak fancy dress box holds 2 costumes, so you get the 2 that free the most slots). You can also set
-  each tier in the config.
-- **`storable` bank tag tab:** every storable item in one tab, grouped by container with a title over each group.
-- **Works before you open the bank:** your last-seen bank and POH storage contents are remembered per account.
-- **STASH units** (optional): also flag items for STASH units you've built but not filled.
-- **Ignore list:** shift-right-click a marked item › *Ignore storable*, or list names, IDs or `*` wildcards in config.
-  Best-in-slot items (skillcapes, max cape, Ancestral, ...) are never flagged unless you turn that off.
-
-The `storable` tab gathers everything in one place, grouped by where it can go, and the POH tiers are detected for
-you (or set by hand):
+- **Markers:** every storable item is marked. Hover it to see where it can go (POH costume room, bookcase, pet
+  house, tackle box, seed vault, tool leprechaun, STASH units and more) and how many your POH already holds.
+- **Upgrade ranking:** storage sorted by bank slots freed. Click a row to list its items.
+- **POH tiers:** detected when you visit your costume room, so only what fits is suggested. Upgrade hints only name
+  furniture your Construction level can build.
+- **`storable` tag tab:** every storable item in one bank tab, grouped by where it goes.
+- **Ignore list:** shift-right-click an item › *Ignore storable*. Best-in-slot items are never flagged by default.
+- **Works before you open the bank,** from the last time you saw it.
+- **Per character:** POH tiers, storage locations and STASH options are remembered for each character.
 
 <table>
   <tr>
     <td align="center" valign="top">
       <img src="docs/images/storable-tab.png" alt="The storable tag tab, grouped by container" height="420"><br>
-      <sub>The <code>storable</code> bank tag tab, one titled group per storage</sub>
+      <sub>The <code>storable</code> tab, one titled group per storage</sub>
     </td>
     <td align="center" valign="top">
       <img src="docs/images/poh-tiers.png" alt="POH tier settings"><br>
-      <sub>POH tier settings: auto-detected in your costume room,<br>or pick a tier per storage</sub>
+      <sub>POH tiers: auto-detected, or pick one per storage</sub>
     </td>
   </tr>
 </table>
 
 ## Ultimate Bank Search
-A sidebar panel (magnifier icon) that remembers your bank and each POH costume room storage, per account:
-- **Items:** everything you own, grouped by location with item counts, total value and when each was last seen.
-  Search by item or location name to find where something is.
+A panel (magnifier icon) that remembers your bank and each POH costume room storage, per character. Open each once
+so it's recorded.
+
+- **Items:** everything you own, grouped by location, with counts, values and when you last saw it. Search by item
+  or location to find where something is.
 - **History:** what each visit to the bank or a storage took out or put in, newest first, with the value change.
 
 <table>
@@ -74,10 +70,18 @@ A sidebar panel (magnifier icon) that remembers your bank and each POH costume r
   </tr>
 </table>
 
-Open your bank and each POH storage once so they're recorded. On by default for new installs; if you're updating,
-turn it on under **Configuration › Ultimate Bank › Bank Search: General**.
+## Settings
+Everything is under **Configuration › Ultimate Bank**, and each panel can be turned off on its own:
 
-Find everything under **Configuration › Ultimate Bank**. Each part can be turned off on its own.
+| Section | What's in it |
+|---|---|
+| Bank Savings: General | Markers, panel, `storable` tab, STASH units, ignore list |
+| Bank Savings: Locations | Which storages to consider |
+| Bank Savings: Tiers | Your POH costume room tiers (auto-detect or pick one) |
+| Bank Search: General | Turn the search panel on, how many visits to keep |
+
+New features start **off** when you update, so nothing changes until you turn them on. Updated to 1.2? Turn on
+Ultimate Bank Search under *Bank Search: General*.
 
 ## Development
 Requires JDK 11.
