@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
@@ -32,7 +33,10 @@ class StorageSavingsPanel extends PluginPanel
 
 	private StorageSavingsState.Results results = StorageSavingsState.Results.EMPTY;
 
-	StorageSavingsPanel()
+	/**
+	 * @param openSettings opens the plugin settings, where storage locations and POH tiers are chosen
+	 */
+	StorageSavingsPanel(Runnable openSettings)
 	{
 		setLayout(new BorderLayout(0, 8));
 		setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -43,7 +47,12 @@ class StorageSavingsPanel extends PluginPanel
 		title.setForeground(Color.WHITE);
 		header.add(title, BorderLayout.NORTH);
 		summary.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-		header.add(summary, BorderLayout.SOUTH);
+		header.add(summary, BorderLayout.CENTER);
+		JButton settings = new JButton("Edit storage locations & tiers");
+		settings.setToolTipText("Opens the settings: expand \"Storage savings: locations\" or \"Storage savings: POH tiers\"");
+		settings.setFocusPainted(false);
+		settings.addActionListener(e -> openSettings.run());
+		header.add(settings, BorderLayout.SOUTH);
 		add(header, BorderLayout.NORTH);
 
 		ranking.setLayout(new BoxLayout(ranking, BoxLayout.Y_AXIS));

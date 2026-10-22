@@ -60,6 +60,11 @@ Current RuneLite client version at setup: **1.13.2**.
   building mode). Detect on `GameObjectSpawned`.
 - Bank placeholders have quantity 0 in the bank `ItemContainer`.
 
+- **Opening our settings from a panel:** there's no public API (`TopLevelConfigPanel` is package-private). The core
+  Configuration plugin opens a plugin's settings on `OverlayMenuClicked` with `MenuAction.RUNELITE_OVERLAY_CONFIG`
+  and an overlay whose `getPlugin()` is that plugin, so `core/SettingsOpener` posts one for a never-added overlay.
+  It can't jump to or expand a section.
+
 ## Tooling gotchas
 - The compile hook runs after **every** edit, so when an edit needs new imports, add the imports first or in the
   same edit. Otherwise you get a spurious "cannot find symbol" in between.

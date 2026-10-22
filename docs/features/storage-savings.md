@@ -11,7 +11,8 @@ After the bank has been opened this session:
 - **Bank marker:** each storable bank item is marked in a configurable style (item outline, box outline or corner triangle; colour, outline thickness, triangle size and corner are configurable). Hovering lists every enabled
   place it can go, with at most 3 STASH units plus "...and N more".
 - **Sidebar panel:** ranks storage locations by how many bank slots they would free, most first. POH builds are
-  orange. Click a location to list its items. This answers "which upgrade frees the most space".
+  orange. Click a location to list its items. This answers "which upgrade frees the most space". An "Edit storage
+  locations & tiers" button opens the plugin settings (`core/SettingsOpener`).
 - **`storable` tag tab:** a virtual bank tag (core `TagManager.registerTag`) showing only flagged items. The tab is
   added to the Bank Tags tab list and removed again when the option or feature is turned off. A user's own tab
   with the same name is never removed.

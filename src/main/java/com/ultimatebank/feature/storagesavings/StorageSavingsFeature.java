@@ -2,6 +2,7 @@ package com.ultimatebank.feature.storagesavings;
 
 import com.ultimatebank.UltimateBankConfig;
 import com.ultimatebank.core.BankFeature;
+import com.ultimatebank.core.SettingsOpener;
 import com.ultimatebank.core.snapshots.Snapshot;
 import com.ultimatebank.core.snapshots.SnapshotLocation;
 import com.ultimatebank.core.snapshots.StorageSnapshots;
@@ -115,6 +116,9 @@ public class StorageSavingsFeature implements BankFeature
 	@Inject
 	private PohTiers pohTiers;
 
+	@Inject
+	private SettingsOpener settingsOpener;
+
 	private final Consumer<SnapshotLocation> snapshotListener = this::onSnapshotsChanged;
 
 	/** Non-placeholder item IDs in the bank, or null until the bank has been seen */
@@ -138,7 +142,7 @@ public class StorageSavingsFeature implements BankFeature
 		overlayManager.add(overlay);
 		overlayManager.add(titlesOverlay);
 
-		panel = new StorageSavingsPanel();
+		panel = new StorageSavingsPanel(settingsOpener::open);
 		navButton = NavigationButton.builder()
 			.tooltip("Storage savings")
 			.icon(createIcon())
