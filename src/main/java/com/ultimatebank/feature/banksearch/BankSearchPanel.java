@@ -1,4 +1,4 @@
-package com.ultimatebank.feature.wheresmystuff;
+package com.ultimatebank.feature.banksearch;
 
 import com.ultimatebank.core.snapshots.Snapshot;
 import com.ultimatebank.core.snapshots.SnapshotLocation;
@@ -46,7 +46,7 @@ import net.runelite.client.util.QuantityFormatter;
  * Bank and POH storage contents grouped by location, and a history of what each visit changed. Searchable.
  * Must only be touched on the Swing thread.
  */
-class WheresMyStuffPanel extends PluginPanel
+class BankSearchPanel extends PluginPanel
 {
 	private static final Color WARN = new Color(255, 152, 31);
 	private static final Color STALE = new Color(230, 70, 70);
@@ -79,7 +79,7 @@ class WheresMyStuffPanel extends PluginPanel
 	/**
 	 * @param images item icon loader (ItemManager::getImage)
 	 */
-	WheresMyStuffPanel(IntFunction<AsyncBufferedImage> images)
+	BankSearchPanel(IntFunction<AsyncBufferedImage> images)
 	{
 		super(false);
 		this.images = images;
@@ -88,7 +88,7 @@ class WheresMyStuffPanel extends PluginPanel
 
 		JPanel top = new JPanel();
 		top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
-		JLabel title = new JLabel("Where's my stuff");
+		JLabel title = new JLabel("Ultimate Bank Search");
 		title.setFont(FontManager.getRunescapeBoldFont());
 		title.setForeground(Color.WHITE);
 		top.add(leftAligned(title));

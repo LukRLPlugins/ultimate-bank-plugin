@@ -1,4 +1,4 @@
-package com.ultimatebank.feature.wheresmystuff;
+package com.ultimatebank.feature.banksearch;
 
 import static org.junit.Assert.assertEquals;
 import com.ultimatebank.core.snapshots.SnapshotLocation;

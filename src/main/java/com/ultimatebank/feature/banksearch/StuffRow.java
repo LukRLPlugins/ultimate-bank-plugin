@@ -1,10 +1,10 @@
-package com.ultimatebank.feature.wheresmystuff;
+package com.ultimatebank.feature.banksearch;
 
 import com.ultimatebank.core.snapshots.SnapshotLocation;
 import lombok.Value;
 
 /**
- * One item in one location, as shown in the Where's my stuff panel. In a visit, quantity is the change (negative =
+ * One item in one location, as shown in the Ultimate Bank Search panel. In a visit, quantity is the change (negative =
  * taken out).
  */
 @Value

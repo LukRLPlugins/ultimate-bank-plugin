@@ -1,4 +1,4 @@
-package com.ultimatebank.feature.wheresmystuff;
+package com.ultimatebank.feature.banksearch;
 
 import com.ultimatebank.core.snapshots.Snapshot;
 import com.ultimatebank.core.snapshots.SnapshotLocation;

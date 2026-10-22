@@ -396,60 +396,60 @@ public interface UltimateBankConfig extends Config
 		return TierChoice.TreasureChest.AUTO_DETECT;
 	}
 
-	// ---- Where's my stuff ----
+	// ---- Ultimate Bank Search ----
 
 	@ConfigSection(
 		name = "Where's my stuff",
 		description = "A sidebar panel to search your bank and POH storage, and see what each visit changed",
 		position = 3
 	)
-	String wheresMyStuffSection = "wheresMyStuffSection";
+	String bankSearchSection = "bankSearchSection";
 
 	@ConfigItem(
-		keyName = "wheresMyStuffEnabled",
+		keyName = "bankSearchEnabled",
 		name = "Enable",
 		description = "Add a sidebar panel to search your bank and POH storage (open each once so it's recorded)",
-		section = wheresMyStuffSection,
+		section = bankSearchSection,
 		position = 0
 	)
-	default boolean wheresMyStuffEnabled()
+	default boolean bankSearchEnabled()
 	{
 		return true;
 	}
 
 	@ConfigItem(
-		keyName = "wheresMyStuffSnapshotCount",
+		keyName = "bankSearchSnapshotCount",
 		name = "Visits kept",
 		description = "How many snapshots of each location to keep (one per visit), for the history",
-		section = wheresMyStuffSection,
+		section = bankSearchSection,
 		position = 1
 	)
 	@Range(min = 2, max = 20)
-	default int wheresMyStuffSnapshotCount()
+	default int bankSearchSnapshotCount()
 	{
 		return 5;
 	}
 
 	@ConfigItem(
-		keyName = "wheresMyStuffWarnHours",
+		keyName = "bankSearchWarnHours",
 		name = "Old after (hours)",
 		description = "Show when a location was last seen in orange once it's this old",
-		section = wheresMyStuffSection,
+		section = bankSearchSection,
 		position = 2
 	)
-	default int wheresMyStuffWarnHours()
+	default int bankSearchWarnHours()
 	{
 		return 24;
 	}
 
 	@ConfigItem(
-		keyName = "wheresMyStuffStaleHours",
+		keyName = "bankSearchStaleHours",
 		name = "Stale after (hours)",
 		description = "Show when a location was last seen in red once it's this old",
-		section = wheresMyStuffSection,
+		section = bankSearchSection,
 		position = 3
 	)
-	default int wheresMyStuffStaleHours()
+	default int bankSearchStaleHours()
 	{
 		return 168;
 	}

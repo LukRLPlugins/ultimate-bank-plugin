@@ -299,7 +299,7 @@ public class StorageSnapshots
 		Snapshot snapshot = new Snapshot(quantities, System.currentTimeMillis());
 		List<Snapshot> history = histories.computeIfAbsent(location, k -> new ArrayList<>());
 		if (SnapshotHistory.record(history, snapshot, visitEntries.contains(location),
-			config.wheresMyStuffSnapshotCount()))
+			config.bankSearchSnapshotCount()))
 		{
 			visitEntries.add(location);
 		}

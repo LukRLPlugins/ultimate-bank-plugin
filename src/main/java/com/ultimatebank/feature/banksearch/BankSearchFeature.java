@@ -1,4 +1,4 @@
-package com.ultimatebank.feature.wheresmystuff;
+package com.ultimatebank.feature.banksearch;
 
 import com.ultimatebank.UltimateBankConfig;
 import com.ultimatebank.core.BankFeature;
@@ -32,9 +32,9 @@ import net.runelite.client.ui.NavigationButton;
  * each visit took out or put in. Built from the saved snapshots. Ported from Where's My Stuff by Wozak-1; see docs/features/wheres-my-stuff.md.
  */
 @Singleton
-public class WheresMyStuffFeature implements BankFeature
+public class BankSearchFeature implements BankFeature
 {
-	private static final String KEY_PREFIX = "wheresMyStuff";
+	private static final String KEY_PREFIX = "bankSearch";
 
 	@Inject
 	private ClientThread clientThread;
@@ -52,21 +52,21 @@ public class WheresMyStuffFeature implements BankFeature
 	private StorageSnapshots snapshots;
 
 	private final Consumer<SnapshotLocation> snapshotListener = location -> refresh();
-	private WheresMyStuffPanel panel;
+	private BankSearchPanel panel;
 	private NavigationButton navButton;
 
 	@Override
 	public boolean isEnabled(UltimateBankConfig config)
 	{
-		return config.wheresMyStuffEnabled();
+		return config.bankSearchEnabled();
 	}
 
 	@Override
 	public void startUp()
 	{
-		panel = new WheresMyStuffPanel(itemManager::getImage);
+		panel = new BankSearchPanel(itemManager::getImage);
 		navButton = NavigationButton.builder()
-			.tooltip("Where's my stuff")
+			.tooltip("Ultimate Bank Search")
 			.icon(createIcon())
 			.priority(9)
 			.panel(panel)
@@ -99,7 +99,7 @@ public class WheresMyStuffFeature implements BankFeature
 	 */
 	private void refresh()
 	{
-		WheresMyStuffPanel target = panel;
+		BankSearchPanel target = panel;
 		if (target == null)
 		{
 			return;
@@ -130,8 +130,8 @@ public class WheresMyStuffFeature implements BankFeature
 			visits.add(new StuffVisit(visit.getLocation(), visit.getTakenAt(), rows));
 		}
 
-		int warn = config.wheresMyStuffWarnHours();
-		int stale = config.wheresMyStuffStaleHours();
+		int warn = config.bankSearchWarnHours();
+		int stale = config.bankSearchStaleHours();
 		SwingUtilities.invokeLater(() -> target.update(items, visits, seenAt, warn, stale));
 	}
 
