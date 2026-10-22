@@ -34,6 +34,7 @@ Run `/hub-check` to audit these automatically before each release.
 |---|---|---|---|
 | v1.0.0 | `d238b96` | https://github.com/runelite/plugin-hub/pull/18906 | merged 2026-10-19 |
 | v1.1.0 | `bfb48a1` | https://github.com/runelite/plugin-hub/pull/19211 | merged 2026-10-22 |
+| v1.2.0 | `28e9591` | https://github.com/runelite/plugin-hub/pull/19219 | submitted 2026-10-22 |
 
 **Fork:** `LukRLPlugins/plugin-hub` (org fork, set up for v1.1.0), so everything for these plugins lives in the org.
 Local clone: `../plugin-hub` (`origin` = org fork, `upstream` = runelite/plugin-hub). v1.0.0 went out from a
