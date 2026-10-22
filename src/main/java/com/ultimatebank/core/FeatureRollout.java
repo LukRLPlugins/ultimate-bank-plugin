@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.RuneScapeProfile;
 
 /**
  * New features ship on for new installs and off for people updating. A config item has one default for everyone, so
@@ -40,8 +41,10 @@ public class FeatureRollout
 	public void apply(List<String> toggles)
 	{
 		String seen = configManager.getConfiguration(UltimateBankConfig.GROUP, SEEN_KEY);
-		// Anything we've saved (settings, bank snapshots, detected tiers) means the plugin was already in use
-		boolean anyKeys = !configManager.getConfigurationKeys(UltimateBankConfig.GROUP + ".").isEmpty();
+		// Anything we've saved means the plugin was already in use: settings, or per-account data (bank snapshots,
+		// detected tiers), which RuneLite keeps in a separate store that getConfigurationKeys doesn't see
+		boolean anyKeys = !configManager.getConfigurationKeys(UltimateBankConfig.GROUP + ".").isEmpty()
+			|| hasAccountData();
 		Set<String> userSet = new HashSet<>();
 		for (String toggle : toggles)
 		{
@@ -62,6 +65,18 @@ public class FeatureRollout
 		{
 			configManager.setConfiguration(UltimateBankConfig.GROUP, SEEN_KEY, String.join(",", nowSeen));
 		}
+	}
+
+	private boolean hasAccountData()
+	{
+		for (RuneScapeProfile profile : configManager.getRSProfiles())
+		{
+			if (!configManager.getRSProfileConfigurationKeys(UltimateBankConfig.GROUP, profile.getKey(), "").isEmpty())
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

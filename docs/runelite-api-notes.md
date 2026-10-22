@@ -66,8 +66,10 @@ Current RuneLite client version at setup: **1.13.2**.
   It can't jump to or expand a section.
 
 - **Config defaults aren't saved:** `ConfigManager.setDefaultConfiguration` unsets values equal to the default, so a
-  `@ConfigItem` default can't tell new installs from updates. `getConfigurationKeys("<group>.")` lists every saved key
-  in the profile, RS-profile data included (`core/FeatureRollout` uses it to spot an existing install).
+  `@ConfigItem` default can't tell new installs from updates. `getConfigurationKeys("<group>.")` lists the saved keys
+  of the current RuneLite profile **only**: RS-profile (per-account) data lives in a separate store shared by all
+  RuneLite profiles (`profiles2/$rsprofile--1.properties`). Check it with `getRSProfiles()` +
+  `getRSProfileConfigurationKeys(group, profile.getKey(), "")` (`core/FeatureRollout` checks both).
 
 ## Tooling gotchas
 - The compile hook runs after **every** edit, so when an edit needs new imports, add the imports first or in the
