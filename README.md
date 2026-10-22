@@ -27,7 +27,8 @@ the space would come from:
   ring, master scroll book, fossil storage, Nightmare Zone, and more. Tooltips also say how many copies a POH storage
   already holds.
 - **Upgrade ranking:** a sidebar panel (chest icon) ranks storage by how many bank slots it would free, and shows what
-  the next upgrade adds, e.g. "POH fancy dress box · Oak · +3 with Teak". Click a row to see its items.
+  the best upgrade your Construction level can build adds, e.g. "POH fancy dress box · Oak · +3 with Teak". Click a
+  row to see its items, or "Edit storage locations & tiers" to jump to the settings.
 - **Knows your POH tiers:** visit your costume room and it detects which furniture you've built, then only suggests
   what fits (an oak fancy dress box holds 2 costumes, so you get the 2 that free the most slots). You can also set
   each tier in the config.
