@@ -8,6 +8,7 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.Rectangle;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Collections;
@@ -29,6 +30,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ListCellRenderer;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.Scrollable;
 import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
@@ -132,7 +134,7 @@ class BankSearchPanel extends PluginPanel
 		add(top, BorderLayout.NORTH);
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-		JPanel holder = new JPanel(new BorderLayout());
+		JPanel holder = new WidthTrackingPanel();
 		holder.add(content, BorderLayout.NORTH);
 		JScrollPane scroll = new JScrollPane(holder);
 		scroll.setBorder(BorderFactory.createEmptyBorder());
@@ -275,6 +277,8 @@ class BankSearchPanel extends PluginPanel
 		panel.setOpaque(false);
 		JList<StuffRow> list = new JList<>(rows.subList(0, Math.min(rows.size(), MAX_ROWS)).toArray(new StuffRow[0]));
 		list.setFixedCellHeight(ROW_HEIGHT);
+		// Rows take the panel's width; long names are cut short ("...") instead of widening the list
+		list.setFixedCellWidth(1);
 		list.setCellRenderer(new RowRenderer(changes));
 		list.setBackground(ColorScheme.DARKER_GRAY_COLOR);
 		panel.add(list, BorderLayout.CENTER);
@@ -302,6 +306,8 @@ class BankSearchPanel extends PluginPanel
 		heading.setOpaque(false);
 		JLabel name = new JLabel(left);
 		name.setForeground(leftColor);
+		name.setToolTipText(left);
+		shrinkable(name);
 		heading.add(name, BorderLayout.CENTER);
 		JLabel summary = new JLabel(right);
 		summary.setFont(FontManager.getRunescapeSmallFont());
@@ -330,6 +336,15 @@ class BankSearchPanel extends PluginPanel
 		label.setForeground(color);
 		label.setAlignmentX(LEFT_ALIGNMENT);
 		return label;
+	}
+
+	/**
+	 * Lets a label give up width (its text is cut short with "...") rather than push the layout wider.
+	 */
+	private static void shrinkable(JLabel label)
+	{
+		label.setPreferredSize(new Dimension(0, label.getPreferredSize().height));
+		label.setMinimumSize(new Dimension(0, 0));
 	}
 
 	private static <T extends Component> JPanel leftAligned(T component)
@@ -385,6 +400,7 @@ class BankSearchPanel extends PluginPanel
 			icon.setPreferredSize(new Dimension(36, 32));
 			add(icon, BorderLayout.WEST);
 			name.setForeground(Color.WHITE);
+			shrinkable(name);
 			add(name, BorderLayout.CENTER);
 			JPanel right = new JPanel(new GridLayout(2, 1));
 			right.setOpaque(false);
@@ -419,6 +435,47 @@ class BankSearchPanel extends PluginPanel
 				: index % 2 == 0 ? ColorScheme.DARKER_GRAY_COLOR : ColorScheme.DARK_GRAY_COLOR);
 			setToolTipText(row.getName());
 			return this;
+		}
+	}
+
+	/**
+	 * Scroll content that's always exactly as wide as the sidebar, so nothing is ever cut off on the right.
+	 */
+	private static class WidthTrackingPanel extends JPanel implements Scrollable
+	{
+		WidthTrackingPanel()
+		{
+			super(new BorderLayout());
+		}
+
+		@Override
+		public Dimension getPreferredScrollableViewportSize()
+		{
+			return getPreferredSize();
+		}
+
+		@Override
+		public int getScrollableUnitIncrement(Rectangle visible, int orientation, int direction)
+		{
+			return ROW_HEIGHT;
+		}
+
+		@Override
+		public int getScrollableBlockIncrement(Rectangle visible, int orientation, int direction)
+		{
+			return visible.height;
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportWidth()
+		{
+			return true;
+		}
+
+		@Override
+		public boolean getScrollableTracksViewportHeight()
+		{
+			return false;
 		}
 	}
 }
