@@ -33,7 +33,7 @@ import net.runelite.client.events.RuneScapeProfileChanged;
 
 /**
  * Remembers what's in the bank and each POH costume room storage, per account, so features can work before (or
- * without) the player opening them again. Keeps the last few snapshots of each location for "recently changed",
+ * without) the player opening them again. Keeps the last few snapshots of each location for the visit history,
  * one per visit: while a location stays open its latest snapshot is updated in place, so the previous snapshot shows
  * everything taken or deposited during the visit.
  * Always on: registered on the EventBus by the plugin itself. All methods must be called on the client thread.
@@ -46,11 +46,9 @@ public class StorageSnapshots
 	/** The costume room interface fills in its items a couple of ticks after it opens */
 	private static final int POH_SCAN_DELAY_TICKS = 2;
 	private static final int POH_SCAN_ATTEMPTS = 6;
-	/** Snapshots kept per location (the latest, plus a few earlier for comparisons) */
-	private static final int HISTORY_SIZE = 5;
-
 	private final Client client;
 	private final ConfigManager configManager;
+	private final UltimateBankConfig config;
 	private final Gson gson;
 	private final PohStorageScanner pohScanner;
 
@@ -69,10 +67,12 @@ public class StorageSnapshots
 	private int pohScanAttemptsLeft;
 
 	@Inject
-	StorageSnapshots(Client client, ConfigManager configManager, Gson gson, PohStorageScanner pohScanner)
+	StorageSnapshots(Client client, ConfigManager configManager, UltimateBankConfig config, Gson gson,
+		PohStorageScanner pohScanner)
 	{
 		this.client = client;
 		this.configManager = configManager;
+		this.config = config;
 		this.gson = gson;
 		this.pohScanner = pohScanner;
 	}
@@ -93,6 +93,15 @@ public class StorageSnapshots
 	{
 		List<Snapshot> history = histories.get(location);
 		return history == null || history.size() < 2 ? null : history.get(history.size() - 2);
+	}
+
+	/**
+	 * @return every kept snapshot of a location, oldest first (one per visit); empty if it's never been seen
+	 */
+	public List<Snapshot> history(SnapshotLocation location)
+	{
+		List<Snapshot> history = histories.get(location);
+		return history == null ? Collections.emptyList() : Collections.unmodifiableList(new ArrayList<>(history));
 	}
 
 	/**
@@ -289,7 +298,8 @@ public class StorageSnapshots
 
 		Snapshot snapshot = new Snapshot(quantities, System.currentTimeMillis());
 		List<Snapshot> history = histories.computeIfAbsent(location, k -> new ArrayList<>());
-		if (SnapshotHistory.record(history, snapshot, visitEntries.contains(location), HISTORY_SIZE))
+		if (SnapshotHistory.record(history, snapshot, visitEntries.contains(location),
+			config.wheresMyStuffSnapshotCount()))
 		{
 			visitEntries.add(location);
 		}

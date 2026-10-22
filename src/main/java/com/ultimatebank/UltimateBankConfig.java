@@ -395,4 +395,62 @@ public interface UltimateBankConfig extends Config
 	{
 		return TierChoice.TreasureChest.AUTO_DETECT;
 	}
+
+	// ---- Where's my stuff ----
+
+	@ConfigSection(
+		name = "Where's my stuff",
+		description = "A sidebar panel to search your bank and POH storage, and see what each visit changed",
+		position = 3
+	)
+	String wheresMyStuffSection = "wheresMyStuffSection";
+
+	@ConfigItem(
+		keyName = "wheresMyStuffEnabled",
+		name = "Enable",
+		description = "Add a sidebar panel to search your bank and POH storage (open each once so it's recorded)",
+		section = wheresMyStuffSection,
+		position = 0
+	)
+	default boolean wheresMyStuffEnabled()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "wheresMyStuffSnapshotCount",
+		name = "Visits kept",
+		description = "How many snapshots of each location to keep (one per visit), for the history",
+		section = wheresMyStuffSection,
+		position = 1
+	)
+	@Range(min = 2, max = 20)
+	default int wheresMyStuffSnapshotCount()
+	{
+		return 5;
+	}
+
+	@ConfigItem(
+		keyName = "wheresMyStuffWarnHours",
+		name = "Old after (hours)",
+		description = "Show when a location was last seen in orange once it's this old",
+		section = wheresMyStuffSection,
+		position = 2
+	)
+	default int wheresMyStuffWarnHours()
+	{
+		return 24;
+	}
+
+	@ConfigItem(
+		keyName = "wheresMyStuffStaleHours",
+		name = "Stale after (hours)",
+		description = "Show when a location was last seen in red once it's this old",
+		section = wheresMyStuffSection,
+		position = 3
+	)
+	default int wheresMyStuffStaleHours()
+	{
+		return 168;
+	}
 }
