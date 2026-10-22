@@ -42,5 +42,10 @@ user-account fork (`Luk-Plugins/plugin-hub`) by mistake.
 PRs are always opened by a user (Luk-Plugins), so expect RuneLite's bot to label them `non-author plugin change`
 (org-owned plugin repo vs user author); it's informational.
 
-**To release an update:** tag `vX.Y.Z` on `main`, run `/hub-check` (config keys diffed against the previous tag), then
-on the org fork change only `commit=` in `plugins/ultimate-bank` and open a PR (or push to the open one).
+**To release an update:**
+1. Add the version to `CHANGELOG.md` (player-facing, short bullets under New / Changed / Fixed) and update the README's
+   "New in" line if it's a minor or major version.
+2. Run `/hub-check` (config keys diffed against the previous tag), then tag `vX.Y.Z` on `main`.
+3. Create the GitHub Release from the changelog section:
+   `gh release create vX.Y.Z -R LukRLPlugins/ultimate-bank-plugin --title "vX.Y.Z" --notes "<section>"`.
+4. On the org fork change only `commit=` in `plugins/ultimate-bank` and open a PR (or push to the open one).
