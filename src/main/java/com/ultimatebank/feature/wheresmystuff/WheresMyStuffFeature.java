@@ -12,10 +12,9 @@ import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.EnumMap;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Consumer;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -29,8 +28,8 @@ import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 
 /**
- * A sidebar search across the bank and POH costume room storage, from saved snapshots, with values and what changed
- * since the previous snapshot. Ported from Where's My Stuff by Wozak-1; see docs/features/wheres-my-stuff.md.
+ * A sidebar panel of the bank and POH costume room storage contents, grouped by location and searchable, plus what
+ * each visit took out or put in. Built from the saved snapshots. Ported from Where's My Stuff by Wozak-1; see docs/features/wheres-my-stuff.md.
  */
 @Singleton
 public class WheresMyStuffFeature implements BankFeature
@@ -106,8 +105,10 @@ public class WheresMyStuffFeature implements BankFeature
 			return;
 		}
 
-		List<StuffRow> rows = new ArrayList<>();
+		List<StuffRow> items = new ArrayList<>();
 		Map<SnapshotLocation, Long> seenAt = new EnumMap<>(SnapshotLocation.class);
+		Map<SnapshotLocation, List<Snapshot>> histories = new EnumMap<>(SnapshotLocation.class);
+		Map<Integer, StuffRow> info = new HashMap<>();
 		for (SnapshotLocation location : SnapshotLocation.values())
 		{
 			Snapshot latest = snapshots.latest(location);
@@ -116,25 +117,36 @@ public class WheresMyStuffFeature implements BankFeature
 				continue;
 			}
 			seenAt.put(location, latest.getTakenAt());
+			histories.put(location, snapshots.history(location));
+			latest.getQuantities().forEach((itemId, quantity) ->
+				items.add(row(info, itemId, quantity, location)));
+		}
 
-			Snapshot previous = snapshots.previous(location);
-			Map<Integer, Integer> changes = SnapshotDiff.changes(previous == null ? null : previous.getQuantities(),
-				latest.getQuantities());
-			Set<Integer> ids = new HashSet<>(latest.getQuantities().keySet());
-			// Items that left this location still show under "Recently changed"
-			ids.addAll(changes.keySet());
-			for (int itemId : ids)
-			{
-				ItemComposition item = itemManager.getItemComposition(itemId);
-				long price = itemManager.getItemPrice(itemId);
-				rows.add(new StuffRow(itemId, item.getName(), latest.getQuantities().getOrDefault(itemId, 0),
-					price > 0 ? price : item.getHaPrice(), location, changes.getOrDefault(itemId, 0)));
-			}
+		List<StuffVisit> visits = new ArrayList<>();
+		for (VisitLog.Visit visit : VisitLog.build(histories))
+		{
+			List<StuffRow> rows = new ArrayList<>();
+			visit.getChanges().forEach((itemId, change) -> rows.add(row(info, itemId, change, visit.getLocation())));
+			visits.add(new StuffVisit(visit.getLocation(), visit.getTakenAt(), rows));
 		}
 
 		int warn = config.wheresMyStuffWarnHours();
 		int stale = config.wheresMyStuffStaleHours();
-		SwingUtilities.invokeLater(() -> target.update(rows, seenAt, warn, stale));
+		SwingUtilities.invokeLater(() -> target.update(items, visits, seenAt, warn, stale));
+	}
+
+	/**
+	 * @param info name and price per item, looked up once per refresh
+	 */
+	private StuffRow row(Map<Integer, StuffRow> info, int itemId, int quantity, SnapshotLocation location)
+	{
+		StuffRow known = info.computeIfAbsent(itemId, id ->
+		{
+			ItemComposition item = itemManager.getItemComposition(id);
+			long price = itemManager.getItemPrice(id);
+			return new StuffRow(id, item.getName(), 0, price > 0 ? price : item.getHaPrice(), location);
+		});
+		return new StuffRow(itemId, known.getName(), quantity, known.getUnitPrice(), location);
 	}
 
 	/**

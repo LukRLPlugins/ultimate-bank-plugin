@@ -5,23 +5,31 @@ import com.ultimatebank.core.snapshots.SnapshotLocation;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
-import javax.swing.DefaultListCellRenderer;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.ListCellRenderer;
+import javax.swing.ScrollPaneConstants;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -29,11 +37,14 @@ import net.runelite.client.ui.ColorScheme;
 import net.runelite.client.ui.FontManager;
 import net.runelite.client.ui.PluginPanel;
 import net.runelite.client.ui.components.IconTextField;
+import net.runelite.client.ui.components.materialtabs.MaterialTab;
+import net.runelite.client.ui.components.materialtabs.MaterialTabGroup;
 import net.runelite.client.util.AsyncBufferedImage;
 import net.runelite.client.util.QuantityFormatter;
 
 /**
- * Search across the bank and POH storage snapshots, with value and recent changes. Swing thread only.
+ * Bank and POH storage contents grouped by location, and a history of what each visit changed. Searchable.
+ * Must only be touched on the Swing thread.
  */
 class WheresMyStuffPanel extends PluginPanel
 {
@@ -41,38 +52,26 @@ class WheresMyStuffPanel extends PluginPanel
 	private static final Color STALE = new Color(230, 70, 70);
 	private static final Color GAIN = new Color(80, 200, 80);
 	private static final Color LOSS = new Color(230, 90, 90);
-	/** Most rows the list shows at once; search narrows it down */
-	private static final int MAX_ROWS = 500;
+	/** Most rows one section or visit shows; search narrows it down */
+	private static final int MAX_ROWS = 200;
+	private static final int ROW_HEIGHT = 36;
 
-	enum Sort
+	private enum View
 	{
-		NAME("Name"),
-		VALUE("Value"),
-		CHANGED("Recently changed");
-
-		private final String label;
-
-		Sort(String label)
-		{
-			this.label = label;
-		}
-
-		@Override
-		public String toString()
-		{
-			return label;
-		}
+		ITEMS, HISTORY
 	}
 
 	private final IntFunction<AsyncBufferedImage> images;
 	private final IconTextField search = new IconTextField();
-	private final JComboBox<Sort> sort = new JComboBox<>(Sort.values());
-	private final JPanel freshness = new JPanel(new GridLayout(0, 1));
-	private final JLabel status = new JLabel();
-	private final JList<StuffRow> list = new JList<>();
+	private final JComboBox<StuffGroups.Sort> sort = new JComboBox<>(StuffGroups.Sort.values());
+	private final JPanel content = new JPanel();
 	private final Map<Integer, ImageIcon> icons = new HashMap<>();
+	/** Sections the user has opened, kept across updates */
+	private final Set<SnapshotLocation> expanded = EnumSet.noneOf(SnapshotLocation.class);
 
-	private List<StuffRow> rows = Collections.emptyList();
+	private View view = View.ITEMS;
+	private List<StuffRow> items = Collections.emptyList();
+	private List<StuffVisit> visits = Collections.emptyList();
 	private Map<SnapshotLocation, Long> seenAt = Collections.emptyMap();
 	private int warnHours = 24;
 	private int staleHours = 168;
@@ -87,127 +86,269 @@ class WheresMyStuffPanel extends PluginPanel
 		setLayout(new BorderLayout(0, 6));
 		setBorder(new EmptyBorder(10, 10, 10, 10));
 
-		JPanel top = new JPanel(new BorderLayout(0, 6));
+		JPanel top = new JPanel();
+		top.setLayout(new BoxLayout(top, BoxLayout.Y_AXIS));
 		JLabel title = new JLabel("Where's my stuff");
 		title.setFont(FontManager.getRunescapeBoldFont());
 		title.setForeground(Color.WHITE);
-		top.add(title, BorderLayout.NORTH);
+		top.add(leftAligned(title));
 
-		JPanel controls = new JPanel(new BorderLayout(0, 4));
 		search.setIcon(IconTextField.Icon.SEARCH);
 		search.setToolTipText("Search by item name or location");
+		search.setPreferredSize(new Dimension(PANEL_WIDTH - 20, 30));
 		search.getDocument().addDocumentListener(new DocumentListener()
 		{
 			@Override
 			public void insertUpdate(DocumentEvent e)
 			{
-				refreshList();
+				rebuild();
 			}
 
 			@Override
 			public void removeUpdate(DocumentEvent e)
 			{
-				refreshList();
+				rebuild();
 			}
 
 			@Override
 			public void changedUpdate(DocumentEvent e)
 			{
-				refreshList();
+				rebuild();
 			}
 		});
-		search.addClearListener(this::refreshList);
-		controls.add(search, BorderLayout.NORTH);
-		sort.setToolTipText("Sort by");
-		sort.addActionListener(e -> refreshList());
-		controls.add(sort, BorderLayout.CENTER);
-		controls.add(freshness, BorderLayout.SOUTH);
-		top.add(controls, BorderLayout.CENTER);
-		status.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
-		status.setFont(FontManager.getRunescapeSmallFont());
-		top.add(status, BorderLayout.SOUTH);
+		search.addClearListener(this::rebuild);
+		top.add(leftAligned(search));
+
+		MaterialTabGroup tabs = new MaterialTabGroup();
+		tabs.setLayout(new GridLayout(1, 2));
+		MaterialTab itemsTab = tab("Items", tabs, View.ITEMS);
+		tab("History", tabs, View.HISTORY);
+		tabs.select(itemsTab);
+		top.add(leftAligned(tabs));
+
+		sort.setToolTipText("Sort items by");
+		sort.addActionListener(e -> rebuild());
+		top.add(leftAligned(sort));
 		add(top, BorderLayout.NORTH);
 
-		list.setCellRenderer(new RowRenderer());
-		list.setBackground(ColorScheme.DARK_GRAY_COLOR);
-		JScrollPane scroll = new JScrollPane(list);
+		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+		JPanel holder = new JPanel(new BorderLayout());
+		holder.add(content, BorderLayout.NORTH);
+		JScrollPane scroll = new JScrollPane(holder);
 		scroll.setBorder(BorderFactory.createEmptyBorder());
+		scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		scroll.getVerticalScrollBar().setUnitIncrement(ROW_HEIGHT);
 		add(scroll, BorderLayout.CENTER);
 
-		update(Collections.emptyList(), Collections.emptyMap(), warnHours, staleHours);
+		rebuild();
 	}
 
-	void update(List<StuffRow> rows, Map<SnapshotLocation, Long> seenAt, int warnHours, int staleHours)
+	void update(List<StuffRow> items, List<StuffVisit> visits, Map<SnapshotLocation, Long> seenAt, int warnHours,
+		int staleHours)
 	{
-		this.rows = rows;
+		this.items = items;
+		this.visits = visits;
 		this.seenAt = seenAt;
 		this.warnHours = warnHours;
 		this.staleHours = staleHours;
-		rebuildFreshness();
-		refreshList();
+		rebuild();
 	}
 
-	private void rebuildFreshness()
+	private MaterialTab tab(String name, MaterialTabGroup tabs, View tabView)
 	{
-		freshness.removeAll();
+		MaterialTab tab = new MaterialTab(name, tabs, null);
+		tab.setHorizontalAlignment(SwingConstants.CENTER);
+		tab.setOnSelectEvent(() ->
+		{
+			view = tabView;
+			rebuild();
+			return true;
+		});
+		tabs.addTab(tab);
+		return tab;
+	}
+
+	private void rebuild()
+	{
+		content.removeAll();
+		sort.setVisible(view == View.ITEMS);
+		String query = search.getText().trim();
+		if (view == View.ITEMS)
+		{
+			buildItems(query);
+		}
+		else
+		{
+			buildHistory(query);
+		}
+		content.revalidate();
+		content.repaint();
+	}
+
+	private void buildItems(String query)
+	{
 		if (seenAt.isEmpty())
 		{
-			freshness.add(note("<html>Open your bank and each POH storage once to record them.</html>", ColorScheme.LIGHT_GRAY_COLOR));
+			content.add(note("Open your bank and each POH storage once to record them."));
+			return;
 		}
-		for (SnapshotLocation location : SnapshotLocation.values())
+
+		List<StuffGroups.Group> groups = StuffGroups.group(items, query, (StuffGroups.Sort) sort.getSelectedItem());
+		if (groups.isEmpty())
 		{
+			content.add(note("No matches."));
+		}
+		for (StuffGroups.Group group : groups)
+		{
+			SnapshotLocation location = group.getLocation();
+			int count = group.getRows().size();
+			JPanel card = card();
+			JPanel heading = heading(location.getDisplayName(), location.isPoh() ? ColorScheme.BRAND_ORANGE : Color.WHITE,
+				count + (count == 1 ? " item" : " items") + " · " + gp(group.getTotalValue()), ColorScheme.LIGHT_GRAY_COLOR);
 			Long at = seenAt.get(location);
-			if (at == null)
+			if (at != null)
+			{
+				heading.add(small("seen " + Snapshot.ago(at), freshness(at)), BorderLayout.SOUTH);
+			}
+			card.add(heading, BorderLayout.NORTH);
+
+			// A search opens every section it matches
+			boolean open = !query.isEmpty() || expanded.contains(location);
+			if (open)
+			{
+				card.add(rows(group.getRows(), false), BorderLayout.CENTER);
+			}
+			heading.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+			heading.setToolTipText(open && query.isEmpty() ? "Click to close" : "Click to open");
+			heading.addMouseListener(new MouseAdapter()
+			{
+				@Override
+				public void mouseClicked(MouseEvent e)
+				{
+					if (!expanded.remove(location))
+					{
+						expanded.add(location);
+					}
+					rebuild();
+				}
+			});
+			content.add(card);
+		}
+	}
+
+	private void buildHistory(String query)
+	{
+		String q = query.toLowerCase(Locale.ROOT);
+		boolean any = false;
+		for (StuffVisit visit : visits)
+		{
+			boolean locationMatches = visit.getLocation().getDisplayName().toLowerCase(Locale.ROOT).contains(q);
+			List<StuffRow> rows = visit.getRows().stream()
+				.filter(r -> q.isEmpty() || locationMatches || r.getName().toLowerCase(Locale.ROOT).contains(q))
+				.sorted(StuffGroups.comparator(StuffGroups.Sort.VALUE))
+				.collect(Collectors.toList());
+			if (rows.isEmpty())
 			{
 				continue;
 			}
-			long hours = (System.currentTimeMillis() - at) / 3_600_000;
-			Color color = hours >= staleHours ? STALE : hours >= warnHours ? WARN : ColorScheme.LIGHT_GRAY_COLOR;
-			freshness.add(note(location.getDisplayName() + ": seen " + Snapshot.ago(at), color));
+			any = true;
+
+			long net = visit.netValue();
+			JPanel card = card();
+			card.add(heading(visit.getLocation().getDisplayName() + " · " + Snapshot.ago(visit.getTakenAt()),
+				visit.getLocation().isPoh() ? ColorScheme.BRAND_ORANGE : Color.WHITE,
+				signed(net) + " gp", net == 0 ? ColorScheme.LIGHT_GRAY_COLOR : net > 0 ? GAIN : LOSS), BorderLayout.NORTH);
+			card.add(rows(rows, true), BorderLayout.CENTER);
+			content.add(card);
 		}
-		freshness.revalidate();
+		if (!any)
+		{
+			content.add(note(visits.isEmpty()
+				? "No visits recorded yet. Take out or put in something at the bank or a POH storage, and it shows here."
+				: "No matches."));
+		}
 	}
 
-	private static JLabel note(String text, Color color)
+	private JPanel rows(List<StuffRow> rows, boolean changes)
+	{
+		JPanel panel = new JPanel(new BorderLayout());
+		panel.setOpaque(false);
+		JList<StuffRow> list = new JList<>(rows.subList(0, Math.min(rows.size(), MAX_ROWS)).toArray(new StuffRow[0]));
+		list.setFixedCellHeight(ROW_HEIGHT);
+		list.setCellRenderer(new RowRenderer(changes));
+		list.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		panel.add(list, BorderLayout.CENTER);
+		if (rows.size() > MAX_ROWS)
+		{
+			panel.add(small((rows.size() - MAX_ROWS) + " more: search to narrow", ColorScheme.LIGHT_GRAY_COLOR), BorderLayout.SOUTH);
+		}
+		return panel;
+	}
+
+	private static JPanel card()
+	{
+		JPanel card = new JPanel(new BorderLayout(0, 4));
+		card.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		card.setBorder(BorderFactory.createCompoundBorder(
+			BorderFactory.createMatteBorder(0, 0, 6, 0, ColorScheme.DARK_GRAY_COLOR),
+			new EmptyBorder(6, 8, 6, 8)));
+		card.setAlignmentX(LEFT_ALIGNMENT);
+		return card;
+	}
+
+	private static JPanel heading(String left, Color leftColor, String right, Color rightColor)
+	{
+		JPanel heading = new JPanel(new BorderLayout(6, 0));
+		heading.setOpaque(false);
+		JLabel name = new JLabel(left);
+		name.setForeground(leftColor);
+		heading.add(name, BorderLayout.CENTER);
+		JLabel summary = new JLabel(right);
+		summary.setFont(FontManager.getRunescapeSmallFont());
+		summary.setForeground(rightColor);
+		heading.add(summary, BorderLayout.EAST);
+		return heading;
+	}
+
+	private Color freshness(long at)
+	{
+		long hours = (System.currentTimeMillis() - at) / 3_600_000;
+		return hours >= staleHours ? STALE : hours >= warnHours ? WARN : ColorScheme.LIGHT_GRAY_COLOR;
+	}
+
+	private static JLabel note(String text)
+	{
+		JLabel label = small("<html>" + text + "</html>", ColorScheme.LIGHT_GRAY_COLOR);
+		label.setBorder(new EmptyBorder(4, 0, 4, 0));
+		return label;
+	}
+
+	private static JLabel small(String text, Color color)
 	{
 		JLabel label = new JLabel(text);
 		label.setFont(FontManager.getRunescapeSmallFont());
 		label.setForeground(color);
+		label.setAlignmentX(LEFT_ALIGNMENT);
 		return label;
 	}
 
-	private void refreshList()
+	private static <T extends Component> JPanel leftAligned(T component)
 	{
-		String query = search.getText().trim().toLowerCase(Locale.ROOT);
-		Sort by = (Sort) sort.getSelectedItem();
-
-		List<StuffRow> shown = rows.stream()
-			.filter(r -> query.isEmpty()
-				|| r.getName().toLowerCase(Locale.ROOT).contains(query)
-				|| r.getLocation().getDisplayName().toLowerCase(Locale.ROOT).contains(query))
-			.filter(r -> by == Sort.CHANGED ? r.getChange() != 0 : r.getQuantity() > 0)
-			.sorted(comparator(by))
-			.collect(Collectors.toList());
-
-		status.setText(shown.size() + (shown.size() == 1 ? " item" : " items")
-			+ (shown.size() > MAX_ROWS ? " (showing " + MAX_ROWS + ", search to narrow)" : "")
-			+ (by == Sort.CHANGED ? " changed since the previous snapshot" : ""));
-		list.setListData(shown.subList(0, Math.min(shown.size(), MAX_ROWS)).toArray(new StuffRow[0]));
+		JPanel wrap = new JPanel(new BorderLayout());
+		wrap.setBorder(new EmptyBorder(0, 0, 6, 0));
+		wrap.add(component, BorderLayout.CENTER);
+		wrap.setAlignmentX(LEFT_ALIGNMENT);
+		return wrap;
 	}
 
-	private static Comparator<StuffRow> comparator(Sort by)
+	private static String gp(long value)
 	{
-		Comparator<StuffRow> byName = Comparator.comparing(StuffRow::getName, String.CASE_INSENSITIVE_ORDER);
-		switch (by)
-		{
-			case VALUE:
-				return Comparator.comparingLong(StuffRow::totalValue).reversed().thenComparing(byName);
-			case CHANGED:
-				return Comparator.comparingLong((StuffRow r) -> Math.abs(r.getChange() * Math.max(1, r.getUnitPrice())))
-					.reversed().thenComparing(byName);
-			default:
-				return byName.thenComparing(r -> r.getLocation().ordinal());
-		}
+		return QuantityFormatter.quantityToStackSize(value) + " gp";
+	}
+
+	private static String signed(long value)
+	{
+		return (value > 0 ? "+" : value < 0 ? "-" : "") + QuantityFormatter.quantityToStackSize(Math.abs(value));
 	}
 
 	private ImageIcon icon(int itemId)
@@ -219,37 +360,65 @@ class WheresMyStuffPanel extends PluginPanel
 			image.onLoaded(() ->
 			{
 				icon.setImage(image);
-				list.repaint();
+				content.repaint();
 			});
 			return icon;
 		});
 	}
 
-	private class RowRenderer extends DefaultListCellRenderer
+	/**
+	 * Loot tracker style row: icon, name, and on the right the quantity over its value.
+	 */
+	private class RowRenderer extends JPanel implements ListCellRenderer<StuffRow>
 	{
-		@Override
-		public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean selected, boolean focus)
+		private final boolean changes;
+		private final JLabel icon = new JLabel();
+		private final JLabel name = new JLabel();
+		private final JLabel quantity = new JLabel();
+		private final JLabel value = new JLabel();
+
+		RowRenderer(boolean changes)
 		{
-			JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, selected, focus);
-			StuffRow row = (StuffRow) value;
-			String change = "";
-			if (row.getChange() != 0)
+			super(new BorderLayout(6, 0));
+			this.changes = changes;
+			setBorder(new EmptyBorder(2, 4, 2, 4));
+			icon.setPreferredSize(new Dimension(36, 32));
+			add(icon, BorderLayout.WEST);
+			name.setForeground(Color.WHITE);
+			add(name, BorderLayout.CENTER);
+			JPanel right = new JPanel(new GridLayout(2, 1));
+			right.setOpaque(false);
+			quantity.setHorizontalAlignment(SwingConstants.RIGHT);
+			value.setHorizontalAlignment(SwingConstants.RIGHT);
+			value.setFont(FontManager.getRunescapeSmallFont());
+			value.setForeground(ColorScheme.LIGHT_GRAY_COLOR);
+			right.add(quantity);
+			right.add(value);
+			add(right, BorderLayout.EAST);
+		}
+
+		@Override
+		public Component getListCellRendererComponent(JList<? extends StuffRow> list, StuffRow row, int index,
+			boolean selected, boolean focus)
+		{
+			icon.setIcon(icon(row.getItemId()));
+			name.setText(row.getName());
+			if (changes)
 			{
-				Color c = row.getChange() > 0 ? GAIN : LOSS;
-				change = String.format(" <font color='#%02x%02x%02x'>%s%s</font>", c.getRed(), c.getGreen(), c.getBlue(),
-					row.getChange() > 0 ? "+" : "", QuantityFormatter.formatNumber(row.getChange()));
+				quantity.setText(signed(row.getQuantity()));
+				quantity.setForeground(row.getQuantity() > 0 ? GAIN : LOSS);
+				value.setText(row.getUnitPrice() > 0 ? signed(row.totalValue()) + " gp" : "");
 			}
-			label.setText("<html>" + row.getName() + " x " + QuantityFormatter.quantityToStackSize(row.getQuantity()) + change
-				+ "<br><font color='#a5a5a5'>" + row.getLocation().getDisplayName()
-				+ (row.getUnitPrice() > 0 ? " · " + QuantityFormatter.quantityToStackSize(row.totalValue()) + " gp" : "")
-				+ "</font></html>");
-			label.setIcon(icon(row.getItemId()));
-			label.setBorder(new EmptyBorder(2, 2, 2, 2));
-			if (!selected)
+			else
 			{
-				label.setBackground(index % 2 == 0 ? ColorScheme.DARK_GRAY_COLOR : ColorScheme.DARKER_GRAY_COLOR);
+				quantity.setText(QuantityFormatter.quantityToStackSize(row.getQuantity()));
+				quantity.setForeground(Color.WHITE);
+				value.setText(row.getUnitPrice() > 0 ? gp(row.totalValue()) : "");
 			}
-			return label;
+			setBackground(selected ? ColorScheme.DARK_GRAY_HOVER_COLOR
+				: index % 2 == 0 ? ColorScheme.DARKER_GRAY_COLOR : ColorScheme.DARK_GRAY_COLOR);
+			setToolTipText(row.getName());
+			return this;
 		}
 	}
 }
