@@ -257,9 +257,12 @@ class BankSearchPanel extends PluginPanel
 
 			long net = visit.netValue();
 			JPanel card = card();
-			card.add(heading(visit.getLocation().getDisplayName() + " · " + Snapshot.ago(visit.getTakenAt()),
+			JPanel heading = heading(visit.getLocation().getDisplayName(),
 				visit.getLocation().isPoh() ? ColorScheme.BRAND_ORANGE : Color.WHITE,
-				signed(net) + " gp", net == 0 ? ColorScheme.LIGHT_GRAY_COLOR : net > 0 ? GAIN : LOSS), BorderLayout.NORTH);
+				signed(net) + " gp", net == 0 ? ColorScheme.LIGHT_GRAY_COLOR : net > 0 ? GAIN : LOSS);
+			// On its own line, so a long location name can't push it out of view
+			heading.add(small(Snapshot.ago(visit.getTakenAt()), ColorScheme.LIGHT_GRAY_COLOR), BorderLayout.SOUTH);
+			card.add(heading, BorderLayout.NORTH);
 			card.add(rows(rows, true), BorderLayout.CENTER);
 			content.add(card);
 		}
