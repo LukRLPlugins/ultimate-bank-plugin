@@ -41,10 +41,14 @@ public class FeatureRollout
 	public void apply(List<String> toggles)
 	{
 		String seen = configManager.getConfiguration(UltimateBankConfig.GROUP, SEEN_KEY);
-		// Anything we've saved means the plugin was already in use: settings, or per-account data (bank snapshots,
-		// detected tiers), which RuneLite keeps in a separate store that getConfigurationKeys doesn't see
-		boolean anyKeys = !configManager.getConfigurationKeys(UltimateBankConfig.GROUP + ".").isEmpty()
-			|| hasAccountData();
+		// Anything we've saved means the plugin was already in use. Every v1.x install has settings saved in its
+		// RuneLite profile (Storage savings records its tag tab on first start); per-account data (bank snapshots,
+		// detected tiers) lives in a separate store that getConfigurationKeys doesn't see, so check that too
+		int settings = configManager.getConfigurationKeys(UltimateBankConfig.GROUP + ".").size();
+		boolean accountData = hasAccountData();
+		boolean anyKeys = settings > 0 || accountData;
+		log.debug("Feature rollout: seen={}, saved settings={}, account data={} ({} accounts known)", seen, settings,
+			accountData, configManager.getRSProfiles().size());
 		Set<String> userSet = new HashSet<>();
 		for (String toggle : toggles)
 		{
