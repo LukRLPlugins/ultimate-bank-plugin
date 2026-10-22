@@ -65,6 +65,10 @@ Current RuneLite client version at setup: **1.13.2**.
   and an overlay whose `getPlugin()` is that plugin, so `core/SettingsOpener` posts one for a never-added overlay.
   It can't jump to or expand a section.
 
+- **Config defaults aren't saved:** `ConfigManager.setDefaultConfiguration` unsets values equal to the default, so a
+  `@ConfigItem` default can't tell new installs from updates. `getConfigurationKeys("<group>.")` lists every saved key
+  in the profile, RS-profile data included (`core/FeatureRollout` uses it to spot an existing install).
+
 ## Tooling gotchas
 - The compile hook runs after **every** edit, so when an edit needs new imports, add the imports first or in the
   same edit. Otherwise you get a spurious "cannot find symbol" in between.

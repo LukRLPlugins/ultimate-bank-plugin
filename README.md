@@ -54,6 +54,15 @@ you (or set by hand):
   </tr>
 </table>
 
+## Where's my stuff
+A sidebar panel (magnifier icon) that remembers your bank and each POH costume room storage, per account:
+- **Items:** everything you own, grouped by location with item counts, total value and when each was last seen.
+  Search by item or location name to find where something is.
+- **History:** what each visit to the bank or a storage took out or put in, newest first, with the value change.
+
+Open your bank and each POH storage once so they're recorded. On by default for new installs; if you're updating,
+turn it on under **Configuration › Ultimate Bank › Where's my stuff**.
+
 Find everything under **Configuration › Ultimate Bank**. Each part can be turned off on its own.
 
 ## Development

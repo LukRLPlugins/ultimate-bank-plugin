@@ -29,8 +29,8 @@ argument-hint: <feature name, e.g. "bank value">
    }
    ```
    Put overlays and helpers in the same package. Only move code to `core/` once a second feature needs it.
-4. **Config.** In `UltimateBankConfig`, add a `@ConfigSection` (`closedByDefault = true`, next `position`) and a `<name>Enabled` toggle as the section's first item (`default false` unless the user says otherwise). Prefix all keys with the feature name.
-5. **Register.** Add `<Name>Feature.class` to `FEATURES` in `UltimateBankPlugin`.
+4. **Config.** In `UltimateBankConfig`, add a `@ConfigSection` (`closedByDefault = true`, next `position`) and a `<name>Enabled` toggle as the section's first item, `default true`. Prefix all keys with the feature name.
+5. **Register.** Add `<Name>Feature.class` to `FEATURES` **and** its `"<name>Enabled"` key to `NEW_FEATURE_TOGGLES` in `UltimateBankPlugin`. New features ship on for new installs and off for people updating (`core/FeatureRollout`, the user's rule). Never remove a key from that list.
 6. **Roadmap.** Set the status to `in-progress` in `docs/roadmap.md`.
 7. **Build.** `./gradlew build` must pass.
 8. **Hand off.** Offer `./gradlew run`, give the user the test checklist from the design doc, set the status to `testing`, and wait for confirmation before marking it `done`.

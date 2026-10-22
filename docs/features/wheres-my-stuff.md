@@ -1,8 +1,8 @@
 # Where's my stuff
 
 - **Package:** `com.ultimatebank.feature.wheresmystuff` (+ shared `core/snapshots`)
-- **Status:** search panel **removed before v1** (code in git history, see #21); snapshots in `core/snapshots` stay
-  on for Storage savings. This doc describes the full prototype for when it's revived.
+- **Status:** panel revived and reworked in #21 (prototype). Snapshots in `core/snapshots` are always on (Storage
+  savings uses them too). Ships **on for new installs, off for existing ones** (`NEW_FEATURE_TOGGLES`).
 - **Sources:** Where's My Stuff / Bank POH Search by Wozak-1 (https://github.com/Wozak-1/bank-poh-searcher, Hub
   commit `95ec7f4`), BSD-2. See docs/attribution.md.
 
@@ -11,18 +11,24 @@
   wardrobe, toy box, cape rack, treasure chest, armour case, fancy dress box, bookcase). While it's open the visit's
   snapshot is kept up to date, so the previous snapshot vs the latest shows everything taken or deposited in that
   visit. A visit with no net change only refreshes the last snapshot's time. Saved per account, last N kept
-  (default 5).
-- **Sidebar panel** (magnifier icon): search by item name or location across bank + POH; each row shows icon,
-  quantity, location and stack value (GE price, high alch for untradeables). Sort by Name, Value, or **Recently
-  changed** (items whose quantity changed since the previous snapshot of that location, biggest value change
-  first, green +/red -). A freshness line per location turns orange/red when old/stale.
+  ("Visits kept", default 5).
+- **Sidebar panel** (magnifier icon), with one search box over two tabs:
+  - **Items:** a collapsible section per location: name (POH in orange), item count, total value, "seen X ago"
+    (orange/red once old/stale). A search opens every section it matches; searching a location name shows all its
+    items. Sort by Value (stack value, GE price or high alch for untradeables) or Name.
+  - **History:** one card per visit (consecutive snapshots of a location), newest first across all locations: the
+    location, when, the net value change, and each item taken out (red −) or put in (green +). A location's first
+    snapshot isn't a visit.
+  - Rows are Loot Tracker style: icon, name, quantity over value. Up to 200 per section/visit, then "search to
+    narrow".
 - **Storage savings uses the snapshots:** works from the saved bank before you open it this session ("from your
   bank as last seen X ago"); its tooltip shows how many copies a POH storage already holds ("(2 stored)").
 
 Dropped for v1 (follow-ups): equipment stat comparison, STASH units in the search.
 
 ## Config
-Section "Where's my stuff": `wheresMyStuffEnabled` (true), `wheresMyStuffSnapshotCount` (5, 2–20),
+Section "Where's my stuff": `wheresMyStuffEnabled` (true for new installs; set false once for existing installs by
+`core/FeatureRollout`), `wheresMyStuffSnapshotCount` ("Visits kept", 5, 2–20, also used by core snapshots),
 `wheresMyStuffWarnHours` (24), `wheresMyStuffStaleHours` (168).
 Storage savings: `storageSavingsUseSnapshots` (true).
 Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quantities, takenAt}`, oldest first).
@@ -36,20 +42,23 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
   visit ends when `Bankmain.ITEMS` / `PohCostumes.UNIVERSE` is gone, on logout, or on an account switch.
 - `core/snapshots/PohStorageScanner`: storage from interface text (`SnapshotLocation.fromInterfaceText`), stored
   items = item widgets under `PohCostumes.ITEMS` with opacity 0. Logs `PohCostumes.TIER` text (for #14).
-- `feature/wheresmystuff`: `SnapshotDiff` (pure), `StuffRow`, `WheresMyStuffPanel` (JList, max 500 rows shown),
-  `WheresMyStuffFeature` (rebuilds rows on snapshot changes, client thread for names/prices).
-- Tests: `SnapshotDiffTest` (diff + location text), `SnapshotJsonTest` (JSON round trip).
+- `feature/wheresmystuff`: `SnapshotDiff`, `VisitLog` (history → visits) and `StuffGroups` (group/filter/sort) are
+  pure; `StuffRow`/`StuffVisit` are display rows; `WheresMyStuffPanel` (sections, `MaterialTabGroup`, a `JList`
+  renderer per section); `WheresMyStuffFeature` rebuilds on snapshot changes (client thread for names/prices).
+- Tests: `SnapshotDiffTest`, `VisitLogTest`, `StuffGroupsTest`, `SnapshotJsonTest`, `SnapshotHistoryTest`.
 
 ## In-game test checklist
-- [ ] Open the bank: magnifier panel shows "Bank: seen 0 minutes ago" and your items; search by name works
-- [ ] Open each POH storage in your costume room: it appears in the freshness list and its items are searchable
-      (search "toy box" lists everything in it)
-- [ ] Sort by Value: most valuable stacks first. Deposit/withdraw something, reopen the bank, sort by
-      Recently changed: it shows with a green +/red − amount
-- [ ] Restart the client and log in without opening the bank: panel still has your data; Storage savings panel says
-      "From your bank as last seen …" and markers/ranking work
-- [ ] Bank a copy of something already in your toy box: still suggested for the toy box, tooltip says "(N stored)",
-      Storage savings panel counts it under "already have copies stored in your POH"
-- [ ] Turn off "Use saved snapshots": Storage savings waits for the bank again; no "(N stored)" notes
-- [ ] Turn off "Where's my stuff": panel button disappears; Storage savings unaffected
-
+- [ ] Existing install (the dev profile has v1.x data): first launch has the panel **off** and the setting unticked.
+      Tick it: the magnifier button appears; restart: still on. A fresh profile starts with it **on**.
+- [ ] Items tab: the Bank section shows its item count, value and "seen 0 minutes ago"; click to open it: rows have
+      icons, quantities and values; click again to close
+- [ ] Open each POH storage: it gets its own section (orange name)
+- [ ] Search "shark": only sections with sharks, opened automatically; search "toy box": everything in it
+- [ ] Sort by Name / Value reorders rows
+- [ ] Bank visit: withdraw 3 different items and deposit 1, close the bank. History has one "Bank · 0 minutes ago"
+      card with those changes (red −, green +) and the net value
+- [ ] Open and close the bank without changes: no new card
+- [ ] Take an item out of the toy box: a toy box card with −1
+- [ ] Set "Visits kept" to 2: after the next visit, at most one card per location
+- [ ] Large bank: scrolling stays smooth
+- [ ] Turn off "Where's my stuff": button disappears; Storage savings unaffected (saved bank, "(N stored)")
