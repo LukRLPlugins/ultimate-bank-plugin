@@ -144,7 +144,7 @@ public class StorageSavingsFeature implements BankFeature
 
 		panel = new StorageSavingsPanel(settingsOpener::open);
 		navButton = NavigationButton.builder()
-			.tooltip("Storage savings")
+			.tooltip("Ultimate Bank Savings")
 			.icon(createIcon())
 			.priority(8)
 			.panel(panel)

@@ -13,13 +13,13 @@ the space would come from:
       <sub>Green corner markers on items that could be stored outside the bank</sub>
     </td>
     <td align="center" valign="top">
-      <img src="docs/images/storage-panel.png" alt="Storage savings panel ranking storage by bank slots freed" height="420"><br>
-      <sub>The Storage savings panel: each storage, the bank slots it frees,<br>your POH tier and what the next upgrade adds</sub>
+      <img src="docs/images/storage-panel.png" alt="Ultimate Bank Savings panel ranking storage by bank slots freed" height="420"><br>
+      <sub>The Ultimate Bank Savings panel: each storage, the bank slots it frees,<br>your POH tier and what the next upgrade adds</sub>
     </td>
   </tr>
 </table>
 
-## Storage savings
+## Ultimate Bank Savings
 - **Storable markers:** every banked item that could be stored elsewhere is marked (corner triangle, item outline or
   box outline; colour, size and corner are up to you). Hover it to see
   where: POH costume room (treasure chest, fancy dress box, magic wardrobe, armour case, cape rack, toy box),
