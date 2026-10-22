@@ -32,11 +32,12 @@ Run `/hub-check` to audit these automatically before each release.
 ## Releases
 | Version | Commit | Hub PR | Status |
 |---|---|---|---|
-| v1.0.0 | `d238b96` | https://github.com/runelite/plugin-hub/pull/18906 | submitted 2026-10-18 |
+| v1.0.0 | `d238b96` | https://github.com/runelite/plugin-hub/pull/18906 | merged 2026-10-19 |
+| v1.1.0 | `bfb48a1` | https://github.com/runelite/plugin-hub/pull/19211 | submitted 2026-10-22 |
 
-**Fork:** use one in the **LukRLPlugins org** (`gh repo fork runelite/plugin-hub --org LukRLPlugins`), so everything
-for these plugins lives in the org. v1.0.0 was submitted from a user-account fork (`Luk-Plugins/plugin-hub`) by
-mistake; delete that fork once PR #18906 is merged (its branch must stay until then). Local clone: `../plugin-hub`.
+**Fork:** `LukRLPlugins/plugin-hub` (org fork, set up for v1.1.0), so everything for these plugins lives in the org.
+Local clone: `../plugin-hub` (`origin` = org fork, `upstream` = runelite/plugin-hub). v1.0.0 went out from a
+user-account fork (`Luk-Plugins/plugin-hub`) by mistake.
 PRs are always opened by a user (Luk-Plugins), so expect RuneLite's bot to label them `non-author plugin change`
 (org-owned plugin repo vs user author); it's informational.
 
