@@ -51,6 +51,8 @@ Current RuneLite client version at setup: **1.13.2**.
   after `WidgetLoaded`. Stored items are the widgets under `PohCostumes.ITEMS` with opacity 0 (unstored ones are
   faded). Which storage it is only shows in the interface text ("Toy box", "Magic wardrobe", ...). `PohCostumes.TIER`
   text is **empty** (checked in-game for fancy dress box, treasure chest, magic wardrobe), so it can't give the tier.
+  Taking out or putting in an item fires no event of its own; key a rescan off the inventory `ItemContainerChanged`
+  (next tick) while `PohCostumes.UNIVERSE` exists.
 - **POH storage stacks**: almost every item can be stored more than once (e.g. Bruma torches in the magic wardrobe).
   Assume stacking unless a storage is known not to; never treat "already stored" as "can't store".
 - **Costume room furniture tiers** are separate objects: `ObjectID.POH_COS_ROOM_<STORAGE>_<TIER>` (+ `_OPEN_` variants;
