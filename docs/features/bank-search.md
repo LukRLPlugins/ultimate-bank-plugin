@@ -1,6 +1,7 @@
-# Where's my stuff
+# Ultimate Bank Search
 
-- **Package:** `com.ultimatebank.feature.wheresmystuff` (+ shared `core/snapshots`)
+- **Package:** `com.ultimatebank.feature.banksearch` (+ shared `core/snapshots`)
+- **Formerly:** "Where's my stuff" (renamed in #21 before release; keys were never released).
 - **Status:** panel revived and reworked in #21 (prototype). Snapshots in `core/snapshots` are always on (Storage
   savings uses them too). Ships **on for new installs, off for existing ones** (`NEW_FEATURE_TOGGLES`).
 - **Sources:** Where's My Stuff / Bank POH Search by Wozak-1 (https://github.com/Wozak-1/bank-poh-searcher, Hub
@@ -20,16 +21,16 @@
     location, when, the net value change, and each item taken out (red −) or put in (green +). A location's first
     snapshot isn't a visit.
   - Rows are Loot Tracker style: icon, name, quantity over value. Up to 200 per section/visit, then "search to
-    narrow".
+    narrow". Everything fits the sidebar width: long names are cut short with "..." (full name on hover).
 - **Storage savings uses the snapshots:** works from the saved bank before you open it this session ("from your
   bank as last seen X ago"); its tooltip shows how many copies a POH storage already holds ("(2 stored)").
 
 Dropped for v1 (follow-ups): equipment stat comparison, STASH units in the search.
 
 ## Config
-Section "Where's my stuff": `wheresMyStuffEnabled` (true for new installs; set false once for existing installs by
-`core/FeatureRollout`), `wheresMyStuffSnapshotCount` ("Visits kept", 5, 2–20, also used by core snapshots),
-`wheresMyStuffWarnHours` (24), `wheresMyStuffStaleHours` (168).
+Section "Ultimate Bank Search: General": `bankSearchEnabled` (true for new installs; set false once for existing installs by
+`core/FeatureRollout`), `bankSearchSnapshotCount` ("Visits kept", 5, 2–20, also used by core snapshots),
+`bankSearchWarnHours` (24), `bankSearchStaleHours` (168).
 Storage savings: `storageSavingsUseSnapshots` (true).
 Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quantities, takenAt}`, oldest first).
 
@@ -42,9 +43,9 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
   visit ends when `Bankmain.ITEMS` / `PohCostumes.UNIVERSE` is gone, on logout, or on an account switch.
 - `core/snapshots/PohStorageScanner`: storage from interface text (`SnapshotLocation.fromInterfaceText`), stored
   items = item widgets under `PohCostumes.ITEMS` with opacity 0. Logs `PohCostumes.TIER` text (for #14).
-- `feature/wheresmystuff`: `SnapshotDiff`, `VisitLog` (history → visits) and `StuffGroups` (group/filter/sort) are
-  pure; `StuffRow`/`StuffVisit` are display rows; `WheresMyStuffPanel` (sections, `MaterialTabGroup`, a `JList`
-  renderer per section); `WheresMyStuffFeature` rebuilds on snapshot changes (client thread for names/prices).
+- `feature/banksearch`: `SnapshotDiff`, `VisitLog` (history → visits) and `StuffGroups` (group/filter/sort) are
+  pure; `StuffRow`/`StuffVisit` are display rows; `BankSearchPanel` (sections, `MaterialTabGroup`, a `JList`
+  renderer per section); `BankSearchFeature` rebuilds on snapshot changes (client thread for names/prices).
 - Tests: `SnapshotDiffTest`, `VisitLogTest`, `StuffGroupsTest`, `SnapshotJsonTest`, `SnapshotHistoryTest`.
 
 ## In-game test checklist
@@ -61,4 +62,4 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
 - [ ] Take an item out of the toy box: a toy box card with −1
 - [ ] Set "Visits kept" to 2: after the next visit, at most one card per location
 - [ ] Large bank: scrolling stays smooth
-- [ ] Turn off "Where's my stuff": button disappears; Storage savings unaffected (saved bank, "(N stored)")
+- [ ] Turn off "Ultimate Bank Search": button disappears; Storage savings unaffected (saved bank, "(N stored)")

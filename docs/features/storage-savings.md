@@ -45,7 +45,7 @@ icons (upstream #108); tooltip names every location (upstream #143); item lists 
 data-fix PRs; no persistence of the bank between sessions (not requested).
 
 ## Config
-Section "Storage savings":
+Section "Ultimate Bank Storage: General":
 | Key | Type | Default |
 |---|---|---|
 | `storageSavingsEnabled` | boolean | true |
@@ -59,7 +59,7 @@ Section "Storage savings":
 | `storageSavingsTagTabGroups` | boolean | true |
 | `storageSavingsUseSnapshots` | boolean | true |
 
-Section "Storage savings: POH tiers": `storageSavingsTier<Storage>` dropdowns (Auto-detect / Not built / tiers).
+Section "Ultimate Bank Storage: Tiers": `storageSavingsTier<Storage>` dropdowns (Auto-detect / Not built / tiers).
 Detected tiers per RS profile: `storageSavingsTierDetected.<STORAGE>` (tier index, -1 = not built).
 | `storageSavingsPanel` | boolean | true |
 | `storageSavingsKeepBis` | boolean | true |
@@ -67,7 +67,7 @@ Detected tiers per RS profile: `storageSavingsTierDetected.<STORAGE>` (tier inde
 | `storageSavingsStash` | boolean | false |
 | `storageSavingsStashBuiltOnly` | boolean | true |
 
-Section "Storage savings: locations": one `storageSavings<Location>` toggle per `StorageLocation`, all on except
+Section "Ultimate Bank Storage: Locations": one `storageSavings<Location>` toggle per `StorageLocation`, all on except
 armour case, cape rack and pet house.
 
 Internal (not shown): `storageSavingsTagTabCreated` (global), `storageSavingsStashFilled` and
