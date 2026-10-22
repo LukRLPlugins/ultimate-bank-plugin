@@ -28,7 +28,9 @@ list to our storage item lists. Item IDs come from the wiki's item infobox data 
 - [Cape rack space](https://oldschool.runescape.wiki/w/Cape_rack_space)
 - [Treasure chest space](https://oldschool.runescape.wiki/w/Treasure_chest_space)
 - [Cape of Accomplishment](https://oldschool.runescape.wiki/w/Cape_of_Accomplishment) (which capes count)
+- [Costume room](https://oldschool.runescape.wiki/w/Costume_room) (Construction level of each furniture tier, in
+  `PohStorage`, entered by hand)
 
-Only facts about the game are taken (item names and IDs, set membership, clue tiers, capacities), not the wiki's
+Only facts about the game are taken (item names and IDs, set membership, clue tiers, capacities, levels), not the wiki's
 text. The wiki's content is licensed under [CC BY-NC-SA 3.0](https://creativecommons.org/licenses/by-nc-sa/3.0/);
 thanks to the [Old School RuneScape Wiki](https://oldschool.runescape.wiki) and its contributors.

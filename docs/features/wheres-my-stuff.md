@@ -7,9 +7,11 @@
   commit `95ec7f4`), BSD-2. See docs/attribution.md.
 
 ## Behaviour
-- **Snapshots (core, always on):** the bank is recorded whenever it changes while open; each POH costume room
-  storage (magic wardrobe, toy box, cape rack, treasure chest, armour case, fancy dress box, bookcase) when you open
-  it. Saved per account, last N kept (default 5).
+- **Snapshots (core, always on):** one snapshot per visit to the bank or a POH costume room storage (magic
+  wardrobe, toy box, cape rack, treasure chest, armour case, fancy dress box, bookcase). While it's open the visit's
+  snapshot is kept up to date, so the previous snapshot vs the latest shows everything taken or deposited in that
+  visit. A visit with no net change only refreshes the last snapshot's time. Saved per account, last N kept
+  (default 5).
 - **Sidebar panel** (magnifier icon): search by item name or location across bank + POH; each row shows icon,
   quantity, location and stack value (GE price, high alch for untradeables). Sort by Name, Value, or **Recently
   changed** (items whose quantity changed since the previous snapshot of that location, biggest value change
@@ -29,7 +31,9 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
 - `core/snapshots/StorageSnapshots`: registered on the EventBus by `UltimateBankPlugin` (not a feature, so it records
   even with both features off). Bank: `ItemContainerChanged` → read next tick, only while `Bankmain.ITEMS` exists;
   placeholders (quantity 0) skipped. POH: `WidgetLoaded` for `InterfaceID.POH_COSTUMES` → scan after 2 ticks, up to
-  6 tries. An unchanged snapshot only refreshes its timestamp; a changed one is appended.
+  6 tries, then rescan the tick after each inventory change while it's open. `SnapshotHistory` (pure, tested): the
+  first change in a visit appends, later ones replace that entry; unchanged contents only refresh the timestamp. A
+  visit ends when `Bankmain.ITEMS` / `PohCostumes.UNIVERSE` is gone, on logout, or on an account switch.
 - `core/snapshots/PohStorageScanner`: storage from interface text (`SnapshotLocation.fromInterfaceText`), stored
   items = item widgets under `PohCostumes.ITEMS` with opacity 0. Logs `PohCostumes.TIER` text (for #14).
 - `feature/wheresmystuff`: `SnapshotDiff` (pure), `StuffRow`, `WheresMyStuffPanel` (JList, max 500 rows shown),

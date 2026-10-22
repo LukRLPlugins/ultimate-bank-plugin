@@ -11,7 +11,8 @@ After the bank has been opened this session:
 - **Bank marker:** each storable bank item is marked in a configurable style (item outline, box outline or corner triangle; colour, outline thickness, triangle size and corner are configurable). Hovering lists every enabled
   place it can go, with at most 3 STASH units plus "...and N more".
 - **Sidebar panel:** ranks storage locations by how many bank slots they would free, most first. POH builds are
-  orange. Click a location to list its items. This answers "which upgrade frees the most space".
+  orange. Click a location to list its items. This answers "which upgrade frees the most space". An "Edit storage
+  locations & tiers" button opens the plugin settings (`core/SettingsOpener`).
 - **`storable` tag tab:** a virtual bank tag (core `TagManager.registerTag`) showing only flagged items. The tab is
   added to the Bank Tags tab list and removed again when the option or feature is turned off. A user's own tab
   with the same name is never removed.
@@ -23,8 +24,9 @@ After the bank has been opened this session:
   suggestions that fit the tier you've built. Tier = config dropdown, or **auto-detected** from the furniture object
   (or its empty build space = not built) when you're in your costume room, saved per account. Count-limited storages
   get the sets that free the most bank slots; a set already stored keeps its slot; cape rack limits only capes of
-  accomplishment; treasure chest takes rewards up to its clue tier. Panel rows show the tier and "+N with <next>"
-  (also for storages that hold nothing yet). Unknown tier = no limit, "tier unknown: visit your costume room".
+  accomplishment; treasure chest takes rewards up to its clue tier. Panel rows show the tier and "+N with <tier>"
+  for the highest tier your real Construction level can build (also for storages that hold nothing yet); no hint
+  if you can't build any higher tier. Recomputed when your Construction level changes. Unknown tier = no limit, "tier unknown: visit your costume room".
   Sets/pieces and their item IDs come from the OSRS Wiki via `tools/convert_wiki_storage_sets.py` → `storage-sets.json`;
   the same run generates `data/WikiStorageItems.java`, merged into the five costume room storages' item lists (#20).
 - **Grouped storable tab** (default on): the `storable` tab gets a core layout with one group per container, a title

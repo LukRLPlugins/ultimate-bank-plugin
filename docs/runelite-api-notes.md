@@ -51,12 +51,19 @@ Current RuneLite client version at setup: **1.13.2**.
   after `WidgetLoaded`. Stored items are the widgets under `PohCostumes.ITEMS` with opacity 0 (unstored ones are
   faded). Which storage it is only shows in the interface text ("Toy box", "Magic wardrobe", ...). `PohCostumes.TIER`
   text is **empty** (checked in-game for fancy dress box, treasure chest, magic wardrobe), so it can't give the tier.
+  Taking out or putting in an item fires no event of its own; key a rescan off the inventory `ItemContainerChanged`
+  (next tick) while `PohCostumes.UNIVERSE` exists.
 - **POH storage stacks**: almost every item can be stored more than once (e.g. Bruma torches in the magic wardrobe).
   Assume stacking unless a storage is known not to; never treat "already stored" as "can't store".
 - **Costume room furniture tiers** are separate objects: `ObjectID.POH_COS_ROOM_<STORAGE>_<TIER>` (+ `_OPEN_` variants;
   treasure chest is spelled `TRESURE`), and `POH_COS_ROOM_<STORAGE>_HOTSPOT` is the empty build space (only in
   building mode). Detect on `GameObjectSpawned`.
 - Bank placeholders have quantity 0 in the bank `ItemContainer`.
+
+- **Opening our settings from a panel:** there's no public API (`TopLevelConfigPanel` is package-private). The core
+  Configuration plugin opens a plugin's settings on `OverlayMenuClicked` with `MenuAction.RUNELITE_OVERLAY_CONFIG`
+  and an overlay whose `getPlugin()` is that plugin, so `core/SettingsOpener` posts one for a never-added overlay.
+  It can't jump to or expand a section.
 
 ## Tooling gotchas
 - The compile hook runs after **every** edit, so when an edit needs new imports, add the imports first or in the

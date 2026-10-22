@@ -2,6 +2,7 @@ package com.ultimatebank.feature.storagesavings;
 
 import com.ultimatebank.UltimateBankConfig;
 import com.ultimatebank.core.BankFeature;
+import com.ultimatebank.core.SettingsOpener;
 import com.ultimatebank.core.snapshots.Snapshot;
 import com.ultimatebank.core.snapshots.SnapshotLocation;
 import com.ultimatebank.core.snapshots.StorageSnapshots;
@@ -36,6 +37,7 @@ import net.runelite.api.ItemContainer;
 import net.runelite.api.KeyCode;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
+import net.runelite.api.Skill;
 import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameObjectSpawned;
 import net.runelite.api.events.GameStateChanged;
@@ -44,6 +46,7 @@ import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPreFired;
+import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
@@ -113,12 +116,17 @@ public class StorageSavingsFeature implements BankFeature
 	@Inject
 	private PohTiers pohTiers;
 
+	@Inject
+	private SettingsOpener settingsOpener;
+
 	private final Consumer<SnapshotLocation> snapshotListener = this::onSnapshotsChanged;
 
 	/** Non-placeholder item IDs in the bank, or null until the bank has been seen */
 	private Set<Integer> bankItems;
 	/** When the saved bank snapshot behind {@link #bankItems} was taken, or 0 if the bank was seen live */
 	private long bankSnapshotAt;
+	/** Real Construction level the upgrade hints were worked out for */
+	private int constructionLevel;
 	/** Every storable item's ID by normalized name, built on first use */
 	private Map<String, Set<Integer>> namesToIds;
 
@@ -134,7 +142,7 @@ public class StorageSavingsFeature implements BankFeature
 		overlayManager.add(overlay);
 		overlayManager.add(titlesOverlay);
 
-		panel = new StorageSavingsPanel();
+		panel = new StorageSavingsPanel(settingsOpener::open);
 		navButton = NavigationButton.builder()
 			.tooltip("Storage savings")
 			.icon(createIcon())
@@ -282,6 +290,16 @@ public class StorageSavingsFeature implements BankFeature
 		}
 
 		if (config.storageSavingsStash() && stashTracker.onGameTick())
+		{
+			recompute();
+		}
+	}
+
+	@Subscribe
+	public void onStatChanged(StatChanged event)
+	{
+		// Upgrade hints only suggest tiers the player can build
+		if (event.getSkill() == Skill.CONSTRUCTION && event.getLevel() != constructionLevel)
 		{
 			recompute();
 		}
@@ -523,12 +541,13 @@ public class StorageSavingsFeature implements BankFeature
 	}
 
 	/**
-	 * Applies each tiered POH storage's capacity at the built tier: which banked items fit, and what the next tier
-	 * would add.
+	 * Applies each tiered POH storage's capacity at the built tier: which banked items fit, and what the best tier
+	 * the player's Construction level can build would add.
 	 */
 	private Map<StorageLocation, TierResult> planTiers(Set<Integer> ignored, boolean keepBis)
 	{
 		Map<StorageLocation, TierResult> results = new HashMap<>();
+		constructionLevel = client.getRealSkillLevel(Skill.CONSTRUCTION);
 		for (PohStorage storage : PohStorage.values())
 		{
 			StorageLocation location = storage.getLocation();
@@ -563,9 +582,11 @@ public class StorageSavingsFeature implements BankFeature
 				: TierPlanner.fits(storage.getLimit(), storageTiers.get(tier).getCapacity(), sets, candidates, stored);
 			String nextTier = null;
 			int extra = 0;
-			if (tier + 1 < storageTiers.size())
+			// Only an upgrade the player has the Construction level for can save space
+			int upgrade = storage.bestUpgrade(tier, constructionLevel);
+			if (upgrade != PohStorage.NOT_BUILT)
 			{
-				PohStorage.Tier next = storageTiers.get(tier + 1);
+				PohStorage.Tier next = storageTiers.get(upgrade);
 				nextTier = next.getName();
 				extra = TierPlanner.fits(storage.getLimit(), next.getCapacity(), sets, candidates, stored).size() - fits.size();
 			}

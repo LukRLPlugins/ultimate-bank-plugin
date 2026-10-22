@@ -6,10 +6,12 @@ import com.ultimatebank.UltimateBankConfig;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Consumer;
 import javax.inject.Inject;
@@ -31,7 +33,9 @@ import net.runelite.client.events.RuneScapeProfileChanged;
 
 /**
  * Remembers what's in the bank and each POH costume room storage, per account, so features can work before (or
- * without) the player opening them again. Keeps the last few snapshots of each location for "recently changed".
+ * without) the player opening them again. Keeps the last few snapshots of each location for "recently changed",
+ * one per visit: while a location stays open its latest snapshot is updated in place, so the previous snapshot shows
+ * everything taken or deposited during the visit.
  * Always on: registered on the EventBus by the plugin itself. All methods must be called on the client thread.
  */
 @Slf4j
@@ -53,8 +57,14 @@ public class StorageSnapshots
 	/** Oldest first */
 	private final Map<SnapshotLocation, List<Snapshot>> histories = new EnumMap<>(SnapshotLocation.class);
 	private final List<Consumer<SnapshotLocation>> listeners = new CopyOnWriteArrayList<>();
+	/** Locations whose latest snapshot was appended during the current visit, so further changes replace it */
+	private final Set<SnapshotLocation> visitEntries = EnumSet.noneOf(SnapshotLocation.class);
 	private String loadedProfile;
 	private boolean bankScanPending;
+	/** The bank has been read since it was opened */
+	private boolean bankVisit;
+	/** The POH storage currently open, once read */
+	private SnapshotLocation pohVisit;
 	private int pohScanDelay = -1;
 	private int pohScanAttemptsLeft;
 
@@ -111,6 +121,7 @@ public class StorageSnapshots
 		}
 		loadedProfile = profile;
 		histories.clear();
+		endVisits();
 		for (SnapshotLocation location : SnapshotLocation.values())
 		{
 			String json = configManager.getRSProfileConfiguration(UltimateBankConfig.GROUP, key(location));
@@ -150,6 +161,10 @@ public class StorageSnapshots
 		{
 			load();
 		}
+		else
+		{
+			endVisits();
+		}
 	}
 
 	@Subscribe
@@ -159,6 +174,13 @@ public class StorageSnapshots
 		{
 			// Read it next tick, once the bank has finished updating
 			bankScanPending = true;
+		}
+		else if (event.getContainerId() == InventoryID.INV && client.getWidget(InterfaceID.PohCostumes.UNIVERSE) != null)
+		{
+			// Taking something out of (or putting it into) POH storage changes the inventory; the storage interface
+			// fires nothing of its own, so read it again next tick
+			pohScanDelay = 1;
+			pohScanAttemptsLeft = POH_SCAN_ATTEMPTS;
 		}
 	}
 
@@ -189,16 +211,35 @@ public class StorageSnapshots
 		{
 			scanPoh();
 		}
+
+		if (bankVisit && client.getWidget(InterfaceID.Bankmain.ITEMS) == null)
+		{
+			bankVisit = false;
+			visitEntries.remove(SnapshotLocation.BANK);
+		}
+		if (pohVisit != null && client.getWidget(InterfaceID.PohCostumes.UNIVERSE) == null)
+		{
+			visitEntries.remove(pohVisit);
+			pohVisit = null;
+		}
+	}
+
+	private void endVisits()
+	{
+		visitEntries.clear();
+		bankVisit = false;
+		pohVisit = null;
 	}
 
 	private void scanBank()
 	{
 		ItemContainer bank = client.getItemContainer(InventoryID.BANK);
-		// Only trust the container while the bank is actually open
-		if (bank == null || client.getWidget(InterfaceID.Bankmain.ITEMS) == null)
+		// Only trust the container while the bank is open (or it changed just as it closed)
+		if (bank == null || !bankVisit && client.getWidget(InterfaceID.Bankmain.ITEMS) == null)
 		{
 			return;
 		}
+		bankVisit = true;
 
 		Map<Integer, Integer> quantities = new HashMap<>();
 		for (Item item : bank.getItems())
@@ -218,6 +259,11 @@ public class StorageSnapshots
 		if (result != null)
 		{
 			pohScanDelay = -1;
+			if (pohVisit != null && pohVisit != result.getLocation())
+			{
+				visitEntries.remove(pohVisit);
+			}
+			pohVisit = result.getLocation();
 			log.debug("Scanned {}: {} items stored, tier text '{}'", result.getLocation(), result.getQuantities().size(),
 				result.getTierText());
 			record(result.getLocation(), result.getQuantities());
@@ -243,18 +289,13 @@ public class StorageSnapshots
 
 		Snapshot snapshot = new Snapshot(quantities, System.currentTimeMillis());
 		List<Snapshot> history = histories.computeIfAbsent(location, k -> new ArrayList<>());
-		if (!history.isEmpty() && history.get(history.size() - 1).sameContents(snapshot))
+		if (SnapshotHistory.record(history, snapshot, visitEntries.contains(location), HISTORY_SIZE))
 		{
-			// Unchanged: just note it was seen now
-			history.set(history.size() - 1, snapshot);
+			visitEntries.add(location);
 		}
 		else
 		{
-			history.add(snapshot);
-		}
-		while (history.size() > HISTORY_SIZE)
-		{
-			history.remove(0);
+			visitEntries.remove(location);
 		}
 
 		configManager.setRSProfileConfiguration(UltimateBankConfig.GROUP, key(location), gson.toJson(history));
