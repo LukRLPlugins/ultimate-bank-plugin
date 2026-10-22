@@ -13,7 +13,7 @@ All sources below are BSD-2-Clause (checked 2026-10-18). Re-check the license be
 | Inventory setups | idea | Inventory Setups (dillydill123) | https://github.com/dillydill123/inventory-setups |
 | Bank value | idea | Bank Value (spudjb) | https://github.com/spudjb/runelite-bank-value |
 | Better search | idea | Better Bank Search (KaasPeer1), Extended Bank Search (khendricksen) | https://github.com/KaasPeer1/better-bank-search, https://github.com/khendricksen/runelite-extended-bank-search |
-| Storage savings | released in v1.0.0 (Hub PR runelite/plugin-hub#18906); v1.1.0 submitted (runelite/plugin-hub#19211) | Wasted Bank Space (mcgeer) + unmerged PRs (Brettgod1355 and others). Still to compare: POH Storage (tcpowell), Bank POH Search (Wozak-1) | https://github.com/mcgeer/WastedBankSpace, https://github.com/tcpowell/poh-storage, https://github.com/Wozak-1/bank-poh-searcher |
+| Storage savings | released in v1.0.0 (Hub PR runelite/plugin-hub#18906); v1.1.0 released (runelite/plugin-hub#19211) | Wasted Bank Space (mcgeer) + unmerged PRs (Brettgod1355 and others). Still to compare: POH Storage (tcpowell), Bank POH Search (Wozak-1) | https://github.com/mcgeer/WastedBankSpace, https://github.com/tcpowell/poh-storage, https://github.com/Wozak-1/bank-poh-searcher |
 | Where's my stuff | snapshots done; search panel removed before v1 (#21) | Where's My Stuff / Bank POH Search (Wozak-1) | https://github.com/Wozak-1/bank-poh-searcher |
 | Costume room highlighter | idea | Costume Room Highlighter (michaelperino) | https://github.com/michaelperino/CostumeRoomChecker |
 
