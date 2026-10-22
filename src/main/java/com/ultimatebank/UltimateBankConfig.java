@@ -21,14 +21,14 @@ public interface UltimateBankConfig extends Config
 	// ---- Storage savings ----
 
 	@ConfigSection(
-		name = "Storage savings",
+		name = "Ultimate Bank Storage: General",
 		description = "Find banked items that could be stored elsewhere, and which storage upgrades free the most bank space",
 		position = 0
 	)
 	String storageSavingsSection = "storageSavingsSection";
 
 	@ConfigSection(
-		name = "Storage savings: locations",
+		name = "Ultimate Bank Storage: Locations",
 		description = "Which storage locations to consider",
 		position = 1,
 		closedByDefault = true
@@ -358,7 +358,7 @@ public interface UltimateBankConfig extends Config
 	// ---- Storage savings: POH tiers ----
 
 	@ConfigSection(
-		name = "Storage savings: POH tiers",
+		name = "Ultimate Bank Storage: Tiers",
 		description = "Which tier of each costume room storage you've built, so only what fits is suggested. "
 			+ "Auto-detect reads it when you're in your costume room.",
 		position = 2,
@@ -399,7 +399,7 @@ public interface UltimateBankConfig extends Config
 	// ---- Ultimate Bank Search ----
 
 	@ConfigSection(
-		name = "Where's my stuff",
+		name = "Ultimate Bank Search: General",
 		description = "A sidebar panel to search your bank and POH storage, and see what each visit changed",
 		position = 3
 	)
