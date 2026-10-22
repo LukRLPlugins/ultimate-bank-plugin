@@ -2,7 +2,7 @@
 
 - **Package:** `com.ultimatebank.feature.banksearch` (+ shared `core/snapshots`)
 - **Formerly:** "Where's my stuff" (renamed in #21 before release; keys were never released).
-- **Status:** panel revived and reworked in #21 (prototype). Snapshots in `core/snapshots` are always on (Storage
+- **Status:** done (#21, merged in #33); ships in v1.2.0. Snapshots in `core/snapshots` are always on (Storage
   savings uses them too). Ships **on for new installs, off for existing ones** (`NEW_FEATURE_TOGGLES`).
 - **Sources:** Where's My Stuff / Bank POH Search by Wozak-1 (https://github.com/Wozak-1/bank-poh-searcher, Hub
   commit `95ec7f4`), BSD-2. See docs/attribution.md.
