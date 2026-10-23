@@ -467,4 +467,39 @@ public interface UltimateBankConfig extends Config
 	{
 		return ValueType.GE;
 	}
+
+	// ---- Bank Tweaks ----
+
+	@ConfigSection(
+		name = "Bank Tweaks",
+		description = "Small changes to what clicks in the bank do",
+		position = 4,
+		closedByDefault = true
+	)
+	String bankTweaksSection = "bankTweaksSection";
+
+	@ConfigItem(
+		keyName = "bankTweaksEnabled",
+		name = "Enable",
+		description = "Turn on the bank tweaks below",
+		section = bankTweaksSection,
+		position = 0
+	)
+	default boolean bankTweaksEnabled()
+	{
+		return true;
+	}
+
+	@ConfigItem(
+		keyName = "bankTweaksViewTagTabs",
+		name = "Left-click: view tag tabs",
+		description = "Left-clicking the bank's \"New tag tab\" button lists your tag tabs instead.<br>"
+			+ "Right-click it to make a new tab.",
+		section = bankTweaksSection,
+		position = 1
+	)
+	default boolean bankTweaksViewTagTabs()
+	{
+		return true;
+	}
 }

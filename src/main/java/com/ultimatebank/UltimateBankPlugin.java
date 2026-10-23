@@ -7,6 +7,7 @@ import com.ultimatebank.core.FeatureRollout;
 import com.ultimatebank.core.snapshots.StorageSnapshots;
 import com.ultimatebank.feature.storagesavings.StorageSavingsFeature;
 import com.ultimatebank.feature.banksearch.BankSearchFeature;
+import com.ultimatebank.feature.banktweaks.BankTweaksFeature;
 import java.util.List;
 import javax.inject.Inject;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,8 @@ public class UltimateBankPlugin extends Plugin
 	 */
 	private static final List<Class<? extends BankFeature>> FEATURES = List.of(
 		StorageSavingsFeature.class,
-		BankSearchFeature.class
+		BankSearchFeature.class,
+		BankTweaksFeature.class
 	);
 
 	/**
@@ -43,7 +45,8 @@ public class UltimateBankPlugin extends Plugin
 	 * {@link FeatureRollout}). Add every new feature's toggle here; never remove one.
 	 */
 	private static final List<String> NEW_FEATURE_TOGGLES = List.of(
-		"bankSearchEnabled"
+		"bankSearchEnabled",
+		"bankTweaksEnabled"
 	);
 
 	@Inject
