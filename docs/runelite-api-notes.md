@@ -65,11 +65,18 @@ Current RuneLite client version at setup: **1.13.2**.
   and an overlay whose `getPlugin()` is that plugin, so `core/SettingsOpener` posts one for a never-added overlay.
   It can't jump to or expand a section.
 
-- **Config defaults aren't saved:** `ConfigManager.setDefaultConfiguration` unsets values equal to the default, so a
-  `@ConfigItem` default can't tell new installs from updates. `getConfigurationKeys("<group>.")` lists the saved keys
-  of the current RuneLite profile **only**: RS-profile (per-account) data lives in a separate store shared by all
-  RuneLite profiles (`profiles2/$rsprofile--1.properties`). Check it with `getRSProfiles()` +
-  `getRSProfileConfigurationKeys(group, profile.getKey(), "")` (`core/FeatureRollout` checks both).
+- **Config defaults are saved at plugin load:** when a plugin loads, `ConfigManager.setDefaultConfiguration` writes
+  the default of every `@ConfigItem` that has no saved value ("Setting default configuration value…" in the log),
+  before `startUp()`. So a saved value doesn't mean the user chose it, and a brand-new install already has dozens of
+  saved keys. To tell new installs from updates, look only at data the plugin writes itself (`core/FeatureRollout`:
+  the storable tab marker and RS-profile data), and treat a saved value equal to the default as unchosen.
+  `getConfigurationKeys("<group>.")` lists the current RuneLite profile's keys **only**: RS-profile (per-account)
+  data lives in a separate store shared by all RuneLite profiles (`profiles2/$rsprofile--1.properties`). Read it
+  with `getRSProfiles()` + `getRSProfileConfigurationKeys(group, profile.getKey(), "")`.
+
+- **Profile switches post ConfigChanged:** `switchProfile` (by hand, or an account's default profile at login) swaps
+  the profile first, then posts a `ConfigChanged` (profile = null) for every differing key, then `ProfileChanged`.
+  Code that saves "user changes" must skip those (`CharacterSettings` compares `getProfile()` with the one it loaded).
 
 - **Settings are per RuneLite profile, not per character.** Several characters often share one RuneLite profile. For
   data that belongs to a character use `set/getRSProfileConfiguration` (keyed by account). For a `@ConfigItem` that
