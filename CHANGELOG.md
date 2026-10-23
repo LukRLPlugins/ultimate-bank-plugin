@@ -2,7 +2,12 @@
 
 What changed in each version of Ultimate Bank, newest first.
 
-## Unreleased
+## 1.3.0
+**New**
+- **Bank value** in Ultimate Bank Search: a total of everything you own (or of what your search matches) at the top
+  of the Items tab, each item's share of it on hover, and sort by quantity.
+- Value items at their **GE price** or **high alch** value (switch in the panel, or *Value items at* in the settings).
+
 **Changed**
 - `storable` tab: groups keep their order while the bank is open, so the storage you're emptying doesn't jump down
   the list. Click a group's title to show only that storage, and click it again to show all.

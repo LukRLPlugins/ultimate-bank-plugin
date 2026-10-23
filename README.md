@@ -6,7 +6,8 @@ A bank toolkit for [RuneLite](https://runelite.net) with two sidebar panels:
   the most bank space.
 - **Ultimate Bank Search** shows everything you own across your bank and POH storage, and what each visit changed.
 
-> **New in 1.2:** Ultimate Bank Search, and settings remembered per character.
+> **New in 1.3:** bank value totals (GE or high alch) in Ultimate Bank Search, and a `storable` tab that stays in
+> order while you empty it.
 > See the [changelog](CHANGELOG.md) for every version.
 
 ## Ultimate Bank Savings
@@ -31,7 +32,8 @@ would come from.
 - **Upgrade ranking:** storage sorted by bank slots freed. Click a row to list its items.
 - **POH tiers:** detected when you visit your costume room, so only what fits is suggested. Upgrade hints only name
   furniture your Construction level can build.
-- **`storable` tag tab:** every storable item in one bank tab, grouped by where it goes.
+- **`storable` tag tab:** every storable item in one bank tab, grouped by where it goes. The order holds while you
+  withdraw, and clicking a group's title shows only that storage.
 - **Ignore list:** shift-right-click an item › *Ignore storable*. Best-in-slot items are never flagged by default.
 - **Works before you open the bank,** from the last time you saw it.
 - **Per character:** POH tiers, storage locations and STASH options are remembered for each character.
@@ -55,6 +57,8 @@ so it's recorded.
 
 - **Items:** everything you own, grouped by location, with counts, values and when you last saw it. Search by item
   or location to find where something is.
+- **Bank value:** the total of everything you own (or of what you searched for), each item's share on hover, sorted
+  by value, quantity or name, at GE price or high alch value.
 - **History:** what each visit to the bank or a storage took out or put in, newest first, with the value change.
 
 <table>
@@ -78,7 +82,7 @@ Everything is under **Configuration › Ultimate Bank**, and each panel can be t
 | Bank Savings: General | Markers, panel, `storable` tab, STASH units, ignore list |
 | Bank Savings: Locations | Which storages to consider |
 | Bank Savings: Tiers | Your POH costume room tiers (auto-detect or pick one) |
-| Bank Search: General | Turn the search panel on, how many visits to keep |
+| Bank Search: General | Turn the search panel on, how many visits to keep, GE or high alch values |
 
 New features start **off** when you update, so nothing changes until you turn them on. Updated to 1.2? Turn on
 Ultimate Bank Search under *Bank Search: General*.
