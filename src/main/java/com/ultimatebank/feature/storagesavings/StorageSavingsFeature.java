@@ -54,6 +54,7 @@ import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
+import net.runelite.client.events.ProfileChanged;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.game.ItemManager;
 import net.runelite.client.ui.ClientToolbar;
@@ -245,6 +246,13 @@ public class StorageSavingsFeature implements BankFeature
 		bankItems = null;
 		stashTracker.load();
 		recompute();
+	}
+
+	@Subscribe
+	public void onProfileChanged(ProfileChanged event)
+	{
+		// A RuneLite profile switch replaced the settings: put the character's own back
+		clientThread.invoke(characterSettings::load);
 	}
 
 	@Subscribe

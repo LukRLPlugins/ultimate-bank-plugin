@@ -7,6 +7,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.client.config.ConfigManager;
+import net.runelite.client.config.ConfigProfile;
 import net.runelite.client.events.ConfigChanged;
 
 /**
@@ -14,6 +15,10 @@ import net.runelite.client.events.ConfigChanged;
  * each character. RuneLite settings belong to the RuneLite profile, which several characters can share, so each
  * character's values are saved in its RS profile, and loaded into the settings when it logs in. The Configuration
  * panel therefore always shows the logged-in character's values. Must be called on the client thread.
+ * <p>
+ * Switching RuneLite profile (by hand, or the account's default profile at login) posts a ConfigChanged for every
+ * setting that differs. Those aren't the user's choice, so they're ignored, and the character's values are loaded into
+ * the new profile once the switch is done (call {@link #load()} on ProfileChanged).
  */
 @Slf4j
 @Singleton
@@ -62,6 +67,8 @@ class CharacterSettings
 	private final ConfigManager configManager;
 	/** Set while we write the settings ourselves, so those writes aren't saved back as the user's choice */
 	private boolean applying;
+	/** Id of the RuneLite profile the character's values were loaded into; it changes first during a profile switch */
+	private volatile Long loadedProfile;
 
 	@Inject
 	CharacterSettings(ConfigManager configManager)
@@ -75,6 +82,7 @@ class CharacterSettings
 	 */
 	void load()
 	{
+		loadedProfile = activeProfile();
 		if (configManager.getRSProfileKey() == null)
 		{
 			return;
@@ -126,8 +134,19 @@ class CharacterSettings
 		{
 			return;
 		}
+		if (!Objects.equals(loadedProfile, activeProfile()))
+		{
+			log.debug("Profile switch: not saving {} as this character's", event.getKey());
+			return;
+		}
 		configManager.setRSProfileConfiguration(UltimateBankConfig.GROUP, PREFIX + event.getKey(),
 			toStored(event.getNewValue()));
+	}
+
+	private Long activeProfile()
+	{
+		ConfigProfile profile = configManager.getProfile();
+		return profile == null ? null : profile.getId();
 	}
 
 	/**
