@@ -2,6 +2,11 @@
 
 What changed in each version of Ultimate Bank, newest first.
 
+## 1.2.2
+**Fixed**
+- Per-character settings (POH tiers, storage locations, STASH options) are no longer replaced when RuneLite switches
+  profile, by hand or through an account's default profile at login.
+
 ## 1.2.1
 - Clearer README, this changelog, and a shorter Plugin Hub description. No changes in game.
 
