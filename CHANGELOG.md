@@ -2,6 +2,11 @@
 
 What changed in each version of Ultimate Bank, newest first.
 
+## Unreleased
+**Changed**
+- `storable` tab: groups keep their order while the bank is open, so the storage you're emptying doesn't jump down
+  the list. Click a group's title to show only that storage, and click it again to show all.
+
 ## 1.2.3
 **Fixed**
 - New features now really start **off** when you update and **on** for new installs (Ultimate Bank Search was
