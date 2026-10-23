@@ -7,7 +7,8 @@ What changed in each version of Ultimate Bank, newest first.
 - **Bank Tweaks** (off when you update, on for new installs): left-click the bank's "+" tag tab button to see your
   tag tabs. Right-click it to make a new tab.
 - Ultimate Bank Search now also records your **seed vault, tackle box, huntsman's kit, forestry kit and POH pet
-  house** (open each once). Bank Savings shows how many of an item they already hold.
+  house** (open each once), and your **tool leprechaun and fossil storage** (no need to open them). Bank Savings
+  shows how many of an item they already hold.
 
 ## 1.3.0
 **New**
