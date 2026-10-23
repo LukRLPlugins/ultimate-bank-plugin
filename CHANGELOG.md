@@ -2,6 +2,11 @@
 
 What changed in each version of Ultimate Bank, newest first.
 
+## 1.2.3
+**Fixed**
+- New features now really start **off** when you update and **on** for new installs (Ultimate Bank Search was
+  starting on for everyone).
+
 ## 1.2.2
 **Fixed**
 - Per-character settings (POH tiers, storage locations, STASH options) are no longer replaced when RuneLite switches
