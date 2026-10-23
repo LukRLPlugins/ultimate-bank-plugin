@@ -28,6 +28,7 @@
  */
 package com.ultimatebank.core.snapshots;
 
+import com.google.common.base.Strings;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.Value;
+import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.widgets.Widget;
@@ -49,6 +51,7 @@ import net.runelite.client.util.Text;
  * Reads a player-owned house costume room storage interface: which storage it is (from its text) and which items
  * are stored in it. Adapted from Where's My Stuff by Wozak-1. Must be called on the client thread.
  */
+@Slf4j
 @Singleton
 class PohStorageScanner
 {
@@ -114,6 +117,47 @@ class PohStorageScanner
 		{
 			text.append(' ').append(Text.removeTags(value));
 		}
+	}
+
+	/**
+	 * Pets in the house menagerie. They're kept as varbits, not in the menagerie's item container (that only holds
+	 * pet items), but the open interface lists each one.
+	 *
+	 * @return item ID of each pet listed, or null if the menagerie isn't open
+	 */
+	Map<Integer, Integer> scanMenagerie()
+	{
+		Widget list = client.getWidget(InterfaceID.PohMenagerie.LIST);
+		if (list == null)
+		{
+			return null;
+		}
+
+		Map<Integer, Integer> pets = new HashMap<>();
+		int other = 0;
+		for (Widget widget : traverse(list))
+		{
+			if (widget.isHidden())
+			{
+				continue;
+			}
+			if (widget.getItemId() > 0)
+			{
+				pets.put(widget.getItemId(), 1);
+			}
+			else if (widget != list && (widget.getModelId() > 0 || !Strings.isNullOrEmpty(widget.getName())
+				|| !Strings.isNullOrEmpty(widget.getText())))
+			{
+				// Not an item icon: logged to learn how the list shows pets
+				if (other++ < 20)
+				{
+					log.debug("Menagerie entry: type {}, model {}, name '{}', text '{}'", widget.getType(),
+						widget.getModelId(), widget.getName(), widget.getText());
+				}
+			}
+		}
+		log.debug("Menagerie list: {} pets as items, {} other entries", pets.size(), other);
+		return pets;
 	}
 
 	private static Iterable<Widget> traverse(Widget root)

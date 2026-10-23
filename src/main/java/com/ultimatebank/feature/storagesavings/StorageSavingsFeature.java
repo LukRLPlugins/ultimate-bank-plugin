@@ -511,9 +511,9 @@ public class StorageSavingsFeature implements BankFeature
 	}
 
 	/**
-	 * POH storage stacks, so copies already stored never stop another going in; this is just shown as information.
+	 * Storage stacks, so copies already stored never stop another going in; this is just shown as information.
 	 *
-	 * @return how many of the item the location's POH snapshot shows stored, or 0 if none or unknown
+	 * @return how many of the item the location's snapshot shows stored, or 0 if none or unknown
 	 */
 	private int storedCount(StorageLocation location, int itemId)
 	{
