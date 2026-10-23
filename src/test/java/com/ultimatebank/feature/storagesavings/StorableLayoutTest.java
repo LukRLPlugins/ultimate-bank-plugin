@@ -3,6 +3,7 @@ package com.ultimatebank.feature.storagesavings;
 import static org.junit.Assert.assertEquals;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.junit.Test;
 
 public class StorableLayoutTest
@@ -43,5 +44,27 @@ public class StorableLayoutTest
 			new StorableLayout.Group("B", List.of(7))));
 		assertEquals(7, result.getPositions()[8]);
 		assertEquals(7, result.getPositions()[24]);
+	}
+
+	@Test
+	public void focusedGroupKeepsItsTitleWhenEmptied()
+	{
+		StorableLayout.Result result = StorableLayout.build(List.of(new StorableLayout.Group("Toy box", List.of())), true);
+		assertEquals(Map.of(0, "Toy box"), result.getTitleRows());
+		assertEquals(8, result.getPositions().length);
+	}
+
+	@Test
+	public void keepOrderHoldsPreviousPlacesAndAppendsNewGroups()
+	{
+		List<StorableLayout.Group> ranking = List.of(
+			new StorableLayout.Group("Tackle box", List.of(3)),
+			new StorableLayout.Group("New", List.of(4)),
+			new StorableLayout.Group("Toy box", List.of(1)),
+			new StorableLayout.Group("Also new", List.of(5)));
+
+		List<StorableLayout.Group> kept = StorableLayout.keepOrder(List.of("Toy box", "Gone", "Tackle box"), ranking);
+		assertEquals(List.of("Toy box", "Tackle box", "New", "Also new"),
+			kept.stream().map(StorableLayout.Group::getTitle).collect(Collectors.toList()));
 	}
 }

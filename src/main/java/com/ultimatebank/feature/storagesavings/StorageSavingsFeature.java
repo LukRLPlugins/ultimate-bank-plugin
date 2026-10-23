@@ -14,6 +14,7 @@ import com.ultimatebank.feature.storagesavings.tiers.PohTiers;
 import com.ultimatebank.feature.storagesavings.tiers.TierPlanner;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import net.runelite.api.Client;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.KeyCode;
+import net.runelite.api.Menu;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.Skill;
@@ -45,9 +47,12 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
+import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.events.WidgetClosed;
+import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
@@ -57,9 +62,12 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ProfileChanged;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.input.MouseAdapter;
+import net.runelite.client.input.MouseManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
+import net.runelite.client.util.Text;
 
 /**
  * Flags banked items that could be stored elsewhere (POH storage, tackle box, STASH units, ...) and ranks
@@ -74,6 +82,7 @@ public class StorageSavingsFeature implements BankFeature
 	private static final String STASH_ROW = "STASH units";
 	/** Tooltips list at most this many STASH units per item */
 	private static final int MAX_STASH_IN_TOOLTIP = 3;
+	private static final String WITHDRAW_ALL = "Withdraw-All";
 
 	@Inject
 	private Client client;
@@ -89,6 +98,9 @@ public class StorageSavingsFeature implements BankFeature
 
 	@Inject
 	private OverlayManager overlayManager;
+
+	@Inject
+	private MouseManager mouseManager;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -125,6 +137,28 @@ public class StorageSavingsFeature implements BankFeature
 
 	private final Consumer<SnapshotLocation> snapshotListener = this::onSnapshotsChanged;
 
+	/** Clicks on a storable tab group title show only that group */
+	private final MouseAdapter titleClicks = new MouseAdapter()
+	{
+		@Override
+		public MouseEvent mousePressed(MouseEvent event)
+		{
+			return onTitleMouse(event, true);
+		}
+
+		@Override
+		public MouseEvent mouseReleased(MouseEvent event)
+		{
+			return onTitleMouse(event, false);
+		}
+
+		@Override
+		public MouseEvent mouseClicked(MouseEvent event)
+		{
+			return onTitleMouse(event, false);
+		}
+	};
+
 	/** Non-placeholder item IDs in the bank, or null until the bank has been seen */
 	private Set<Integer> bankItems;
 	/** When the saved bank snapshot behind {@link #bankItems} was taken, or 0 if the bank was seen live */
@@ -146,6 +180,7 @@ public class StorageSavingsFeature implements BankFeature
 		characterSettings.load();
 		overlayManager.add(overlay);
 		overlayManager.add(titlesOverlay);
+		mouseManager.registerMouseListener(titleClicks);
 
 		panel = new StorageSavingsPanel(settingsOpener::open);
 		navButton = NavigationButton.builder()
@@ -156,6 +191,7 @@ public class StorageSavingsFeature implements BankFeature
 			.build();
 		syncPanel();
 
+		tagTab.setBankOpen(client.getWidget(InterfaceID.Bankmain.ITEMS) != null);
 		tagTab.sync();
 		stashTracker.load();
 
@@ -173,6 +209,7 @@ public class StorageSavingsFeature implements BankFeature
 	{
 		overlayManager.remove(overlay);
 		overlayManager.remove(titlesOverlay);
+		mouseManager.unregisterMouseListener(titleClicks);
 		clientToolbar.removeNavigation(navButton);
 		navButton = null;
 		panel = null;
@@ -246,6 +283,89 @@ public class StorageSavingsFeature implements BankFeature
 		bankItems = null;
 		stashTracker.load();
 		recompute();
+	}
+
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded event)
+	{
+		if (event.getGroupId() == InterfaceID.BANKMAIN)
+		{
+			tagTab.setBankOpen(true);
+		}
+	}
+
+	@Subscribe
+	public void onWidgetClosed(WidgetClosed event)
+	{
+		if (event.getGroupId() == InterfaceID.BANKMAIN)
+		{
+			tagTab.setBankOpen(false);
+		}
+	}
+
+	/**
+	 * In the storable tab, makes Withdraw-All the left-click option by swapping it with the current one. Swaps
+	 * existing options only, like core's Menu Entry Swapper; shift keeps the normal left-click.
+	 */
+	@Subscribe
+	public void onPostMenuSort(PostMenuSort event)
+	{
+		if (!config.storageSavingsTagTabWithdrawAll() || client.isMenuOpen() || client.isKeyPressed(KeyCode.KC_SHIFT)
+			|| !tagTab.isOpen())
+		{
+			return;
+		}
+
+		Menu menu = client.getMenu();
+		MenuEntry[] entries = menu.getMenuEntries();
+		int top = entries.length - 1;
+		if (top < 0)
+		{
+			return;
+		}
+		MenuEntry leftClick = entries[top];
+		String option = Text.removeTags(leftClick.getOption());
+		if (leftClick.getParam1() != InterfaceID.Bankmain.ITEMS || !option.startsWith("Withdraw")
+			|| option.equals(WITHDRAW_ALL))
+		{
+			return;
+		}
+
+		for (int i = top - 1; i >= 0; i--)
+		{
+			MenuEntry entry = entries[i];
+			if (entry.getParam1() == leftClick.getParam1() && entry.getParam0() == leftClick.getParam0()
+				&& WITHDRAW_ALL.equals(Text.removeTags(entry.getOption())))
+			{
+				entries[i] = leftClick;
+				entries[top] = entry;
+				menu.setMenuEntries(entries);
+				return;
+			}
+		}
+	}
+
+	/**
+	 * Toggles the focus on a left-click on a storable tab title row, and keeps the game from seeing that click.
+	 * The row is empty bank space, so the click would do nothing in game anyway.
+	 */
+	private MouseEvent onTitleMouse(MouseEvent event, boolean pressed)
+	{
+		if (event.getButton() != MouseEvent.BUTTON1)
+		{
+			return event;
+		}
+		String title = titlesOverlay.titleAt(event.getPoint());
+		if (title == null)
+		{
+			return event;
+		}
+		if (pressed)
+		{
+			clientThread.invoke(() -> tagTab.toggleFocus(title));
+		}
+		event.consume();
+		return event;
 	}
 
 	@Subscribe

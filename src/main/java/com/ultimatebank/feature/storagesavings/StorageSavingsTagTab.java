@@ -24,7 +24,8 @@ import net.runelite.client.util.Text;
  * A virtual bank tag holding every flagged item, plus a tag tab to open it. Built on core bank tags:
  * the tag is registered with {@link TagManager}, and the tab is added to the Bank Tags plugin's tab list.
  * Adapted from the "wasted" tag tab by Brettgod1355 (Wasted Bank Space PR #136). When grouping is on, the tab gets a
- * core layout with one titled group per container (see {@link StorableLayout}).
+ * core layout with one titled group per container (see {@link StorableLayout}). While the bank is open the groups
+ * keep their order, so they don't jump around as the player withdraws, and clicking a title shows only that group.
  * All methods must be called on the client thread.
  */
 @Slf4j
@@ -45,10 +46,17 @@ class StorageSavingsTagTab
 
 	// Replaced whole, never modified, so the registered tag always reads a consistent set
 	private volatile Set<Integer> items = Collections.emptySet();
+	/** What the tag shows: all flagged items, or the focused group's */
+	private volatile Set<Integer> visible = Collections.emptySet();
 	private List<StorageSavingsState.LocationSavings> groups = Collections.emptyList();
 	/** Titles by layout row, read by the overlay; empty when the tab isn't grouped */
 	private volatile Map<Integer, String> titleRows = Collections.emptyMap();
 	private boolean registered;
+	private boolean bankOpen;
+	/** Group titles in the order shown; held while the bank is open */
+	private List<String> shownOrder = Collections.emptyList();
+	/** The only group shown, or null for all */
+	private volatile String focus;
 
 	@Inject
 	StorageSavingsTagTab(ConfigManager configManager, TagManager tagManager, BankTagsService bankTagsService,
@@ -70,7 +78,7 @@ class StorageSavingsTagTab
 		{
 			if (!registered)
 			{
-				tagManager.registerTag(TAG_NAME, itemId -> items.contains(itemId));
+				tagManager.registerTag(TAG_NAME, itemId -> visible.contains(itemId));
 				registered = true;
 			}
 			addTab();
@@ -92,6 +100,7 @@ class StorageSavingsTagTab
 		}
 		removeTab();
 		titleRows = Collections.emptyMap();
+		focus = null;
 		if (TAG_NAME.equals(bankTagsService.getActiveTag()))
 		{
 			bankTagsService.closeBankTag();
@@ -117,6 +126,51 @@ class StorageSavingsTagTab
 	}
 
 	/**
+	 * The bank opened or closed. Closing it ends any focus and lets the groups take their ranked order again.
+	 */
+	void setBankOpen(boolean open)
+	{
+		if (open == bankOpen)
+		{
+			return;
+		}
+		bankOpen = open;
+		if (!open)
+		{
+			focus = null;
+			if (registered)
+			{
+				saveLayout();
+			}
+		}
+	}
+
+	/**
+	 * Shows only the group with this title, or all groups again if it's already the only one shown.
+	 */
+	void toggleFocus(String title)
+	{
+		if (!registered)
+		{
+			return;
+		}
+		focus = title.equals(focus) ? null : title;
+		log.debug("Storable tab focus: {}", focus);
+		saveLayout();
+		refreshIfOpen();
+	}
+
+	String getFocus()
+	{
+		return focus;
+	}
+
+	boolean isOpen()
+	{
+		return registered && TAG_NAME.equals(bankTagsService.getActiveTag());
+	}
+
+	/**
 	 * Titles to draw, by layout row, while the storable tab is open.
 	 */
 	Map<Integer, String> getTitleRows()
@@ -128,6 +182,8 @@ class StorageSavingsTagTab
 	{
 		if (!config.storageSavingsTagTabGroups())
 		{
+			focus = null;
+			visible = items;
 			// Only remove a grouped layout we made, not one the user arranged by hand
 			if (!titleRows.isEmpty())
 			{
@@ -137,9 +193,35 @@ class StorageSavingsTagTab
 			return;
 		}
 
-		StorableLayout.Result result = StorableLayout.build(groups.stream()
+		List<StorableLayout.Group> all = groups.stream()
 			.map(g -> new StorableLayout.Group(g.getName(), g.getItemIds()))
-			.collect(Collectors.toList()));
+			.collect(Collectors.toList());
+		if (bankOpen)
+		{
+			all = StorableLayout.keepOrder(shownOrder, all);
+			List<String> order = new ArrayList<>(shownOrder);
+			all.stream().map(StorableLayout.Group::getTitle).filter(t -> !order.contains(t)).forEach(order::add);
+			shownOrder = order;
+		}
+		else
+		{
+			shownOrder = all.stream().map(StorableLayout.Group::getTitle).collect(Collectors.toList());
+		}
+
+		String focus = this.focus;
+		StorableLayout.Result result;
+		if (focus == null)
+		{
+			visible = items;
+			result = StorableLayout.build(all);
+		}
+		else
+		{
+			StorableLayout.Group group = all.stream().filter(g -> g.getTitle().equals(focus)).findFirst()
+				.orElse(new StorableLayout.Group(focus, List.of()));
+			visible = Set.copyOf(group.getItemIds());
+			result = StorableLayout.build(List.of(group), true);
+		}
 		layoutManager.saveLayout(new Layout(TAG_NAME, result.getPositions()));
 		titleRows = result.getTitleRows();
 	}

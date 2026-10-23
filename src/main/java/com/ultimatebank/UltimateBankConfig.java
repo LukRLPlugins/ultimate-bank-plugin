@@ -147,13 +147,26 @@ public interface UltimateBankConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "storageSavingsTagTabWithdrawAll",
+		name = "Storable tab: withdraw all",
+		description = "In the 'storable' tab, left-click withdraws all of an item instead of one. "
+			+ "Hold shift for the normal left-click.",
+		section = storageSavingsSection,
+		position = 9
+	)
+	default boolean storageSavingsTagTabWithdrawAll()
+	{
+		return true;
+	}
+
+	@ConfigItem(
 		keyName = "storageSavingsUseSnapshots",
 		name = "Use saved snapshots",
 		description = "Remember your bank and POH storage contents. Before you open the bank, work from the bank as it was "
 			+ "last seen; show how many copies a POH storage already holds; and count sets already stored toward a "
 			+ "storage's tier capacity. Open each POH storage once so it's recorded.",
 		section = storageSavingsSection,
-		position = 9
+		position = 10
 	)
 	default boolean storageSavingsUseSnapshots()
 	{
@@ -165,7 +178,7 @@ public interface UltimateBankConfig extends Config
 		name = "Sidebar panel",
 		description = "Show a sidebar panel ranking storage locations by how many bank slots they would free",
 		section = storageSavingsSection,
-		position = 10
+		position = 11
 	)
 	default boolean storageSavingsPanel()
 	{
@@ -177,7 +190,7 @@ public interface UltimateBankConfig extends Config
 		name = "Never flag best-in-slot",
 		description = "Don't flag best-in-slot items such as skillcapes, max cape or Ancestral, even if they could be stored",
 		section = storageSavingsSection,
-		position = 11
+		position = 12
 	)
 	default boolean storageSavingsKeepBis()
 	{
@@ -190,7 +203,7 @@ public interface UltimateBankConfig extends Config
 		description = "Comma-separated item names, item IDs or wildcards (e.g. *cape*) to never flag.<br>"
 			+ "Tip: shift-right-click a marked bank item to ignore or unignore it.",
 		section = storageSavingsSection,
-		position = 12
+		position = 13
 	)
 	default String storageSavingsIgnored()
 	{
@@ -209,7 +222,7 @@ public interface UltimateBankConfig extends Config
 		name = "STASH units",
 		description = "Flag items that could be stored in a clue scroll STASH unit",
 		section = storageSavingsSection,
-		position = 13
+		position = 14
 	)
 	default boolean storageSavingsStash()
 	{
@@ -222,7 +235,7 @@ public interface UltimateBankConfig extends Config
 		description = "Only count STASH units you've built and haven't filled yet.<br>"
 			+ "Open the STASH chart in your POH or Watson's noticeboard once to load which units are filled.",
 		section = storageSavingsSection,
-		position = 14
+		position = 15
 	)
 	default boolean storageSavingsStashBuiltOnly()
 	{
