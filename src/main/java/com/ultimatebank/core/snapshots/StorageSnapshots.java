@@ -70,6 +70,8 @@ public class StorageSnapshots
 	private final Set<ContainerStorage> openContainers = EnumSet.noneOf(ContainerStorage.class);
 	/** Container storages to read next tick */
 	private final Set<ContainerStorage> containerScans = EnumSet.noneOf(ContainerStorage.class);
+	/** Container storages read since their interface last opened */
+	private final Set<ContainerStorage> readThisOpen = EnumSet.noneOf(ContainerStorage.class);
 	/** Ticks left to keep re-reading the menagerie: its pet list fills in after it opens */
 	private int menagerieRescans;
 
@@ -222,6 +224,7 @@ public class StorageSnapshots
 		if (storage != null)
 		{
 			openContainers.add(storage);
+			readThisOpen.remove(storage);
 			// The container may already be loaded and not change, so read it anyway
 			containerScans.add(storage);
 			if (storage == ContainerStorage.PET_HOUSE)
@@ -296,6 +299,7 @@ public class StorageSnapshots
 		pohVisit = null;
 		openContainers.clear();
 		containerScans.clear();
+		readThisOpen.clear();
 		menagerieRescans = 0;
 	}
 
@@ -348,12 +352,14 @@ public class StorageSnapshots
 			}
 		}
 
-		// Re-reads during a visit often find nothing new; don't save those again
+		// Re-reads while it's open often find nothing new; save unchanged contents once per opening (that notes when
+		// it was seen), not on every re-read
 		Snapshot latest = latest(storage.location);
-		if (latest != null && visitEntries.contains(storage.location) && latest.getQuantities().equals(quantities))
+		if (latest != null && readThisOpen.contains(storage) && latest.getQuantities().equals(quantities))
 		{
 			return;
 		}
+		readThisOpen.add(storage);
 		log.debug("Read {}: {} items", storage.location, quantities.size());
 		record(storage.location, quantities);
 	}
