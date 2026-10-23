@@ -5,7 +5,9 @@
 - **Status:** done (#21, merged in #33); ships in v1.2.0. Snapshots in `core/snapshots` are always on (Storage
   savings uses them too). Ships **on for new installs, off for existing ones** (`NEW_FEATURE_TOGGLES`).
 - **Sources:** Where's My Stuff / Bank POH Search by Wozak-1 (https://github.com/Wozak-1/bank-poh-searcher, Hub
-  commit `95ec7f4`), BSD-2. See docs/attribution.md.
+  commit `95ec7f4`), BSD-2. Bank value (#10): ideas from Bank Value by spudjb
+  (https://github.com/spudjb/runelite-bank-value, Hub commit `cdf25aa`), BSD-2, folded in here instead of a
+  separate panel (no code copied). See docs/attribution.md.
 
 ## Behaviour
 - **Snapshots (core, always on):** one snapshot per visit to the bank or a POH costume room storage (magic
@@ -16,7 +18,12 @@
 - **Sidebar panel** (magnifier icon), with one search box over two tabs:
   - **Items:** a collapsible section per location: name (POH in orange), item count, total value, "seen X ago"
     (orange/red once old/stale). A search opens every section it matches; searching a location name shows all its
-    items. Sort by Value (stack value, GE price or high alch for untradeables) or Name.
+    items. Sort by Value (stack value), Quantity or Name.
+  - **Bank value (#10):** a Total card above the sections: item count and value of everything recorded, or of what
+    matches the search (with its share of everything). Each row's tooltip shows its share of everything you own.
+    Value items at **GE price** (high alch for untradeables) or **High alch**, from the box next to the sort (saved
+    as `bankSearchValueType`). Coins and platinum tokens count at face value either way. Core's bank title already
+    shows the open tab's GE/HA value, so there's no bank overlay.
   - **History:** one card per visit (consecutive snapshots of a location), newest first across all locations: the
     location, when, the net value change, and each item taken out (red −) or put in (green +). A location's first
     snapshot isn't a visit.
@@ -30,7 +37,7 @@ Dropped for v1 (follow-ups): equipment stat comparison, STASH units in the searc
 ## Config
 Section "Bank Search: General": `bankSearchEnabled` (true for new installs; set false once for existing installs by
 `core/FeatureRollout`), `bankSearchSnapshotCount` ("Visits kept", 5, 2–20, also used by core snapshots),
-`bankSearchWarnHours` (24), `bankSearchStaleHours` (168).
+`bankSearchWarnHours` (24), `bankSearchStaleHours` (168), `bankSearchValueType` (GE price / High alch, GE).
 Storage savings: `storageSavingsUseSnapshots` (true).
 Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quantities, takenAt}`, oldest first).
 
@@ -55,7 +62,11 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
       icons, quantities and values; click again to close
 - [ ] Open each POH storage: it gets its own section (orange name)
 - [ ] Search "shark": only sections with sharks, opened automatically; search "toy box": everything in it
-- [ ] Sort by Name / Value reorders rows
+- [ ] Sort by Name / Value / Quantity reorders rows
+- [ ] Total card: item count and value of everything; search "rune": "Matching" with the share of everything
+- [ ] Hover a row: tooltip shows its share of everything you own
+- [ ] Switch to High alch: values, totals and History change (coins unchanged); restart: still High alch; the
+      setting "Value items at" in Bank Search: General matches
 - [ ] Bank visit: withdraw 3 different items and deposit 1, close the bank. History has one "Bank · 0 minutes ago"
       card with those changes (red −, green +) and the net value
 - [ ] Open and close the bank without changes: no new card

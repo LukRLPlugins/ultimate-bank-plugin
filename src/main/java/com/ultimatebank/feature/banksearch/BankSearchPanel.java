@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
@@ -66,6 +67,10 @@ class BankSearchPanel extends PluginPanel
 	private final IntFunction<AsyncBufferedImage> images;
 	private final IconTextField search = new IconTextField();
 	private final JComboBox<StuffGroups.Sort> sort = new JComboBox<>(StuffGroups.Sort.values());
+	private final JComboBox<ValueType> valueType = new JComboBox<>(ValueType.values());
+	private final JPanel options = new JPanel(new GridLayout(1, 2, 6, 0));
+	/** Set while the value type box is updated from settings, so that isn't saved back */
+	private boolean settingValueType;
 	private final JPanel content = new JPanel();
 	private final Map<Integer, ImageIcon> icons = new HashMap<>();
 	/** Sections the user has opened, kept across updates */
@@ -73,15 +78,18 @@ class BankSearchPanel extends PluginPanel
 
 	private View view = View.ITEMS;
 	private List<StuffRow> items = Collections.emptyList();
+	/** Value of everything recorded, for each item's share */
+	private long grandTotal;
 	private List<StuffVisit> visits = Collections.emptyList();
 	private Map<SnapshotLocation, Long> seenAt = Collections.emptyMap();
 	private int warnHours = 24;
 	private int staleHours = 168;
 
 	/**
-	 * @param images item icon loader (ItemManager::getImage)
+	 * @param images         item icon loader (ItemManager::getImage)
+	 * @param onValueType    saves a value type picked in the panel
 	 */
-	BankSearchPanel(IntFunction<AsyncBufferedImage> images)
+	BankSearchPanel(IntFunction<AsyncBufferedImage> images, ValueType initialValueType, Consumer<ValueType> onValueType)
 	{
 		super(false);
 		this.images = images;
@@ -130,7 +138,19 @@ class BankSearchPanel extends PluginPanel
 
 		sort.setToolTipText("Sort items by");
 		sort.addActionListener(e -> rebuild());
-		top.add(leftAligned(sort));
+		valueType.setSelectedItem(initialValueType);
+		valueType.setToolTipText("Value items at their GE price or high alch value");
+		valueType.addActionListener(e ->
+		{
+			if (!settingValueType)
+			{
+				onValueType.accept((ValueType) valueType.getSelectedItem());
+			}
+		});
+		options.setOpaque(false);
+		options.add(sort);
+		options.add(valueType);
+		top.add(leftAligned(options));
 		add(top, BorderLayout.NORTH);
 
 		content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
@@ -146,9 +166,13 @@ class BankSearchPanel extends PluginPanel
 	}
 
 	void update(List<StuffRow> items, List<StuffVisit> visits, Map<SnapshotLocation, Long> seenAt, int warnHours,
-		int staleHours)
+		int staleHours, ValueType valueType)
 	{
 		this.items = items;
+		grandTotal = StuffGroups.totalValue(items);
+		settingValueType = true;
+		this.valueType.setSelectedItem(valueType);
+		settingValueType = false;
 		this.visits = visits;
 		this.seenAt = seenAt;
 		this.warnHours = warnHours;
@@ -173,7 +197,7 @@ class BankSearchPanel extends PluginPanel
 	private void rebuild()
 	{
 		content.removeAll();
-		sort.setVisible(view == View.ITEMS);
+		sort.setEnabled(view == View.ITEMS);
 		String query = search.getText().trim();
 		if (view == View.ITEMS)
 		{
@@ -199,6 +223,10 @@ class BankSearchPanel extends PluginPanel
 		if (groups.isEmpty())
 		{
 			content.add(note("No matches."));
+		}
+		else
+		{
+			content.add(totalCard(groups, query));
 		}
 		for (StuffGroups.Group group : groups)
 		{
@@ -236,6 +264,23 @@ class BankSearchPanel extends PluginPanel
 			});
 			content.add(card);
 		}
+	}
+
+	/**
+	 * Everything recorded (or everything matching the search): its value and how many item stacks.
+	 */
+	private JPanel totalCard(List<StuffGroups.Group> groups, String query)
+	{
+		long value = groups.stream().mapToLong(StuffGroups.Group::getTotalValue).sum();
+		int stacks = groups.stream().mapToInt(g -> g.getRows().size()).sum();
+		JPanel card = card();
+		card.add(heading(query.isEmpty() ? "Total" : "Matching", Color.WHITE,
+			stacks + (stacks == 1 ? " item" : " items") + " · " + gp(value), Color.WHITE), BorderLayout.NORTH);
+		String share = query.isEmpty() ? null : StuffGroups.share(value, grandTotal);
+		card.add(small(groups.size() + (groups.size() == 1 ? " location" : " locations") + ", at "
+			+ this.valueType.getSelectedItem() + (share == null ? "" : " · " + share + " of everything"),
+			ColorScheme.LIGHT_GRAY_COLOR), BorderLayout.SOUTH);
+		return card;
 	}
 
 	private void buildHistory(String query)
@@ -434,9 +479,10 @@ class BankSearchPanel extends PluginPanel
 				quantity.setForeground(Color.WHITE);
 				value.setText(row.getUnitPrice() > 0 ? gp(row.totalValue()) : "");
 			}
+			String share = changes ? null : StuffGroups.share(row.totalValue(), grandTotal);
 			setBackground(selected ? ColorScheme.DARK_GRAY_HOVER_COLOR
 				: index % 2 == 0 ? ColorScheme.DARKER_GRAY_COLOR : ColorScheme.DARK_GRAY_COLOR);
-			setToolTipText(row.getName());
+			setToolTipText(share == null ? row.getName() : row.getName() + " · " + share + " of everything you own");
 			return this;
 		}
 	}
