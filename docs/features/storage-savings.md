@@ -39,6 +39,13 @@ After the bank has been opened this session:
 - **Grouped storable tab** (default on): the `storable` tab gets a core layout with one group per container, a title
   and divider line above each (drawn by `StorableTitlesOverlay`), ordered most bank slots freed first. An item that
   fits several containers appears in each group. Turning it off removes only the layout we created.
+  - **Order held while the bank is open (#32):** groups keep their place as you withdraw, even when a group stops
+    being the biggest saving. The ranking applies again the next time the bank opens.
+  - **Focus one storage (#32):** click a group's title row to show only that group, and click it again to show all.
+    Hovering a title highlights it and shows the hint. A focused group keeps its title when emptied. The focus ends
+    when the bank closes. The click is consumed (it's on empty bank space).
+  - No "take all": one click withdrawing a whole group would send many actions from one click, which the Plugin Hub
+    doesn't allow. Withdraw item by item with the bank's own quantity setting (e.g. "All") instead.
 - **Ignore list:** config text box (names, IDs, `*` wildcards; case and space insensitive; a shared name ignores
   all items with that name), plus shift-right-click on a marked bank item › "Ignore storable" / "Unignore storable".
   Unignore only removes exact entries, and wildcards stay.
@@ -104,6 +111,10 @@ Internal (not shown): `storageSavingsTagTabCreated` (global), `storageSavingsSta
       titles on their rows and inside the bank; an item fitting two containers shows in both groups
 - [ ] Ignore an item / toggle a location: groups update while the tab is open
 - [ ] "Group storable tab" off: plain ungrouped tab, no titles; on again: grouped
+- [ ] Storable tab: withdraw the items of the top group one by one. The group stays first even once it saves fewer
+      slots than the next. Close and reopen the bank: groups are re-ranked
+- [ ] Hover a title: it turns yellow with "click to show only this". Click it: only that group shows, with "click to
+      show all". Withdraw everything: the title stays. Click it: all groups again. Closing the bank also ends the focus
 - [ ] Open the bank. Storable items get a yellow corner marker, and hovering lists where they can go
 - [ ] Sidebar chest icon › panel ranks locations with slot counts; POH ones orange; click to expand/collapse
 - [ ] Bank shows a `storable` tag tab (treasure chest icon); opening it shows only marked items

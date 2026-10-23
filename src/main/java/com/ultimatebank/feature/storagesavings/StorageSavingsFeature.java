@@ -14,6 +14,7 @@ import com.ultimatebank.feature.storagesavings.tiers.PohTiers;
 import com.ultimatebank.feature.storagesavings.tiers.TierPlanner;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.MouseEvent;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -48,6 +49,8 @@ import net.runelite.api.events.MenuOptionClicked;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
+import net.runelite.api.events.WidgetClosed;
+import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
 import net.runelite.api.widgets.Widget;
@@ -57,6 +60,8 @@ import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.events.ProfileChanged;
 import net.runelite.client.events.RuneScapeProfileChanged;
 import net.runelite.client.game.ItemManager;
+import net.runelite.client.input.MouseAdapter;
+import net.runelite.client.input.MouseManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
@@ -89,6 +94,9 @@ public class StorageSavingsFeature implements BankFeature
 
 	@Inject
 	private OverlayManager overlayManager;
+
+	@Inject
+	private MouseManager mouseManager;
 
 	@Inject
 	private ClientToolbar clientToolbar;
@@ -125,6 +133,28 @@ public class StorageSavingsFeature implements BankFeature
 
 	private final Consumer<SnapshotLocation> snapshotListener = this::onSnapshotsChanged;
 
+	/** Clicks on a storable tab group title show only that group */
+	private final MouseAdapter titleClicks = new MouseAdapter()
+	{
+		@Override
+		public MouseEvent mousePressed(MouseEvent event)
+		{
+			return onTitleMouse(event, true);
+		}
+
+		@Override
+		public MouseEvent mouseReleased(MouseEvent event)
+		{
+			return onTitleMouse(event, false);
+		}
+
+		@Override
+		public MouseEvent mouseClicked(MouseEvent event)
+		{
+			return onTitleMouse(event, false);
+		}
+	};
+
 	/** Non-placeholder item IDs in the bank, or null until the bank has been seen */
 	private Set<Integer> bankItems;
 	/** When the saved bank snapshot behind {@link #bankItems} was taken, or 0 if the bank was seen live */
@@ -146,6 +176,7 @@ public class StorageSavingsFeature implements BankFeature
 		characterSettings.load();
 		overlayManager.add(overlay);
 		overlayManager.add(titlesOverlay);
+		mouseManager.registerMouseListener(titleClicks);
 
 		panel = new StorageSavingsPanel(settingsOpener::open);
 		navButton = NavigationButton.builder()
@@ -156,6 +187,7 @@ public class StorageSavingsFeature implements BankFeature
 			.build();
 		syncPanel();
 
+		tagTab.setBankOpen(client.getWidget(InterfaceID.Bankmain.ITEMS) != null);
 		tagTab.sync();
 		stashTracker.load();
 
@@ -173,6 +205,7 @@ public class StorageSavingsFeature implements BankFeature
 	{
 		overlayManager.remove(overlay);
 		overlayManager.remove(titlesOverlay);
+		mouseManager.unregisterMouseListener(titleClicks);
 		clientToolbar.removeNavigation(navButton);
 		navButton = null;
 		panel = null;
@@ -246,6 +279,47 @@ public class StorageSavingsFeature implements BankFeature
 		bankItems = null;
 		stashTracker.load();
 		recompute();
+	}
+
+	@Subscribe
+	public void onWidgetLoaded(WidgetLoaded event)
+	{
+		if (event.getGroupId() == InterfaceID.BANKMAIN)
+		{
+			tagTab.setBankOpen(true);
+		}
+	}
+
+	@Subscribe
+	public void onWidgetClosed(WidgetClosed event)
+	{
+		if (event.getGroupId() == InterfaceID.BANKMAIN)
+		{
+			tagTab.setBankOpen(false);
+		}
+	}
+
+	/**
+	 * Toggles the focus on a left-click on a storable tab title row, and keeps the game from seeing that click.
+	 * The row is empty bank space, so the click would do nothing in game anyway.
+	 */
+	private MouseEvent onTitleMouse(MouseEvent event, boolean pressed)
+	{
+		if (event.getButton() != MouseEvent.BUTTON1)
+		{
+			return event;
+		}
+		String title = titlesOverlay.titleAt(event.getPoint());
+		if (title == null)
+		{
+			return event;
+		}
+		if (pressed)
+		{
+			clientThread.invoke(() -> tagTab.toggleFocus(title));
+		}
+		event.consume();
+		return event;
 	}
 
 	@Subscribe
