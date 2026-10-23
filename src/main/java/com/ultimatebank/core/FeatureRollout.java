@@ -24,6 +24,8 @@ public class FeatureRollout
 {
 	/** Comma-separated toggle keys already handled */
 	private static final String SEEN_KEY = "featuresSeen";
+	/** Saved by Storage savings when it first adds its tag tab (every v1.x install, unless that option was off) */
+	private static final String TAG_TAB_CREATED_KEY = "storageSavingsTagTabCreated";
 
 	private final ConfigManager configManager;
 
@@ -41,18 +43,20 @@ public class FeatureRollout
 	public void apply(List<String> toggles)
 	{
 		String seen = configManager.getConfiguration(UltimateBankConfig.GROUP, SEEN_KEY);
-		// Anything we've saved means the plugin was already in use. Every v1.x install has settings saved in its
-		// RuneLite profile (Storage savings records its tag tab on first start); per-account data (bank snapshots,
-		// detected tiers) lives in a separate store that getConfigurationKeys doesn't see, so check that too
-		int settings = configManager.getConfigurationKeys(UltimateBankConfig.GROUP + ".").size();
+		// Only data the plugin writes itself shows it was already in use: RuneLite saves every setting's default when
+		// the plugin loads, so saved settings prove nothing. Storage savings records its tag tab on first start, and
+		// per-account data (bank snapshots, detected tiers) lives in the RS profile store
+		boolean tagTabCreated = configManager.getConfiguration(UltimateBankConfig.GROUP, TAG_TAB_CREATED_KEY) != null;
 		boolean accountData = hasAccountData();
-		boolean anyKeys = settings > 0 || accountData;
-		log.debug("Feature rollout: seen={}, saved settings={}, account data={} ({} accounts known)", seen, settings,
-			accountData, configManager.getRSProfiles().size());
+		boolean anyKeys = tagTabCreated || accountData;
+		log.debug("Feature rollout: seen={}, tag tab created={}, account data={} ({} accounts known)", seen,
+			tagTabCreated, accountData, configManager.getRSProfiles().size());
+		// RuneLite saves a new setting's default (on) when the plugin loads, before this runs, so a saved "true" isn't
+		// a choice. Only the user can have turned a toggle off
 		Set<String> userSet = new HashSet<>();
 		for (String toggle : toggles)
 		{
-			if (configManager.getConfiguration(UltimateBankConfig.GROUP, toggle) != null)
+			if ("false".equals(configManager.getConfiguration(UltimateBankConfig.GROUP, toggle)))
 			{
 				userSet.add(toggle);
 			}
@@ -85,8 +89,8 @@ public class FeatureRollout
 
 	/**
 	 * @param seen    the saved list of handled toggles, or null if none has been saved yet
-	 * @param anyKeys whether the config group holds any saved values
-	 * @param userSet toggles that already have a saved value (the user chose)
+	 * @param anyKeys whether the plugin has saved data of its own (it was in use before)
+	 * @param userSet toggles the user already turned off
 	 * @return the toggles to switch off
 	 */
 	static List<String> toDisable(String seen, boolean anyKeys, List<String> toggles, Set<String> userSet)
