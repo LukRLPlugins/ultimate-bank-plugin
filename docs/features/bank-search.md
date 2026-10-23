@@ -15,6 +15,11 @@
   snapshot is kept up to date, so the previous snapshot vs the latest shows everything taken or deposited in that
   visit. A visit with no net change only refreshes the last snapshot's time. Saved per account, last N kept
   ("Visits kept", default 5).
+- **Container storages (#41):** the POH pet house, seed vault, tackle box, huntsman's kit and forestry kit are read
+  from their item container while their interface is open (`core/snapshots/ContainerStorage`), with the same
+  one-snapshot-per-visit rule. Still missing (#41 follow-ups): tool leprechaun and fossil storage (varbits), and
+  the steel key ring, master scroll book, spice rack, Flamtaer bag, Nightmare Zone, Elnock Inquisitor and
+  mysterious stranger (to research).
 - **Sidebar panel** (magnifier icon), with one search box over two tabs:
   - **Items:** a collapsible section per location: name (POH in orange), item count, total value, "seen X ago"
     (orange/red once old/stale). A search opens every section it matches; searching a location name shows all its
@@ -30,7 +35,7 @@
   - Rows are Loot Tracker style: icon, name, quantity over value. Up to 200 per section/visit, then "search to
     narrow". Everything fits the sidebar width: long names are cut short with "..." (full name on hover).
 - **Storage savings uses the snapshots:** works from the saved bank before you open it this session ("from your
-  bank as last seen X ago"); its tooltip shows how many copies a POH storage already holds ("(2 stored)").
+  bank as last seen X ago"); its tooltip shows how many copies a snapshotted storage already holds ("(2 stored)").
 
 Dropped for v1 (follow-ups): equipment stat comparison, STASH units in the search.
 
@@ -71,6 +76,10 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
       card with those changes (red −, green +) and the net value
 - [ ] Open and close the bank without changes: no new card
 - [ ] Take an item out of the toy box: a toy box card with −1
+- [ ] Open the seed vault: a "Seed vault" section with your seeds; search a seed name: it's found there. Withdraw a
+      seed and close the vault: a seed vault History card with the change
+- [ ] Same for the tackle box, huntsman's kit, forestry kit (open each) and the POH pet house (orange)
+- [ ] Bank Savings: a banked seed that's also in the vault says "Seed vault (N stored)" on hover
 - [ ] Set "Visits kept" to 2: after the next visit, at most one card per location
 - [ ] Large bank: scrolling stays smooth
 - [ ] Turn off "Ultimate Bank Search": button disappears; Storage savings unaffected (saved bank, "(N stored)")

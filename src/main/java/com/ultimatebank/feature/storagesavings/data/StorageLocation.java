@@ -123,6 +123,16 @@ public enum StorageLocation
 				return SnapshotLocation.TOY_BOX;
 			case BOOKCASE:
 				return SnapshotLocation.BOOKCASE;
+			case PET_HOUSE:
+				return SnapshotLocation.PET_HOUSE;
+			case SEED_VAULT:
+				return SnapshotLocation.SEED_VAULT;
+			case TACKLE_BOX:
+				return SnapshotLocation.TACKLE_BOX;
+			case HUNTSMANS_KIT:
+				return SnapshotLocation.HUNTSMANS_KIT;
+			case FORESTRY_KIT:
+				return SnapshotLocation.FORESTRY_KIT;
 			default:
 				return null;
 		}

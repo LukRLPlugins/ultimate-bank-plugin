@@ -215,7 +215,7 @@ class BankSearchPanel extends PluginPanel
 	{
 		if (seenAt.isEmpty())
 		{
-			content.add(note("Open your bank and each POH storage once to record them."));
+			content.add(note("Open your bank and each storage (POH storage, seed vault, tackle box, ...) once to record them."));
 			return;
 		}
 

@@ -4,7 +4,8 @@ import java.util.Locale;
 import lombok.Getter;
 
 /**
- * Places whose contents are snapshotted: the bank and each player-owned house costume room storage.
+ * Places whose contents are snapshotted: the bank, each player-owned house costume room storage, and the storages
+ * read from an item container ({@link ContainerStorage}). New values go at the end: the order is the panel's order.
  */
 @Getter
 public enum SnapshotLocation
@@ -16,7 +17,13 @@ public enum SnapshotLocation
 	TREASURE_CHEST("POH treasure chest", true),
 	ARMOUR_CASE("POH armour case", true),
 	FANCY_DRESS_BOX("POH fancy dress box", true),
-	BOOKCASE("POH bookcase", true);
+	BOOKCASE("POH bookcase", true),
+	// Read from an item container while open (ContainerStorage)
+	PET_HOUSE("POH pet house", true),
+	SEED_VAULT("Seed vault", false),
+	TACKLE_BOX("Tackle box", false),
+	HUNTSMANS_KIT("Huntsman's kit", false),
+	FORESTRY_KIT("Forestry kit", false);
 
 	private final String displayName;
 	private final boolean poh;
