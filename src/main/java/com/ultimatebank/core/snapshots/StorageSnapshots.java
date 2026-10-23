@@ -70,6 +70,8 @@ public class StorageSnapshots
 	private final Set<ContainerStorage> openContainers = EnumSet.noneOf(ContainerStorage.class);
 	/** Container storages to read next tick */
 	private final Set<ContainerStorage> containerScans = EnumSet.noneOf(ContainerStorage.class);
+	/** Ticks left to keep re-reading the menagerie: its pet list fills in after it opens */
+	private int menagerieRescans;
 
 	@Inject
 	StorageSnapshots(Client client, ConfigManager configManager, UltimateBankConfig config, Gson gson,
@@ -193,6 +195,11 @@ public class StorageSnapshots
 		{
 			containerScans.add(ContainerStorage.forInventory(event.getContainerId()));
 		}
+		else if (event.getContainerId() == InventoryID.INV && openContainers.contains(ContainerStorage.PET_HOUSE))
+		{
+			// Taking a pet out (or putting one in) changes the inventory, not the menagerie's container
+			menagerieRescans = 2;
+		}
 		else if (event.getContainerId() == InventoryID.INV && client.getWidget(InterfaceID.PohCostumes.UNIVERSE) != null)
 		{
 			// Taking something out of (or putting it into) POH storage changes the inventory; the storage interface
@@ -217,6 +224,10 @@ public class StorageSnapshots
 			openContainers.add(storage);
 			// The container may already be loaded and not change, so read it anyway
 			containerScans.add(storage);
+			if (storage == ContainerStorage.PET_HOUSE)
+			{
+				menagerieRescans = 4;
+			}
 		}
 	}
 
@@ -248,6 +259,11 @@ public class StorageSnapshots
 			scanPoh();
 		}
 
+		if (menagerieRescans > 0)
+		{
+			menagerieRescans--;
+			containerScans.add(ContainerStorage.PET_HOUSE);
+		}
 		for (ContainerStorage storage : containerScans)
 		{
 			scanContainer(storage);
@@ -280,6 +296,7 @@ public class StorageSnapshots
 		pohVisit = null;
 		openContainers.clear();
 		containerScans.clear();
+		menagerieRescans = 0;
 	}
 
 	private void scanBank()
@@ -307,18 +324,35 @@ public class StorageSnapshots
 	private void scanContainer(ContainerStorage storage)
 	{
 		ItemContainer container = client.getItemContainer(storage.inventoryId);
-		// Only trust it while its interface is open (or it changed just as it closed)
-		if (container == null || !openContainers.contains(storage) && !visitEntries.contains(storage.location))
+		// Only trust it while its interface is open (or it changed just as it closed). The menagerie's container
+		// may not exist when it holds no pet items, but its pets are still listed
+		if (container == null && storage != ContainerStorage.PET_HOUSE
+			|| !openContainers.contains(storage) && !visitEntries.contains(storage.location))
 		{
 			return;
 		}
 		Map<Integer, Integer> quantities = new HashMap<>();
-		for (Item item : container.getItems())
+		for (Item item : container == null ? new Item[0] : container.getItems())
 		{
 			if (item.getId() > 0 && item.getQuantity() > 0)
 			{
 				quantities.merge(item.getId(), item.getQuantity(), Integer::sum);
 			}
+		}
+		if (storage == ContainerStorage.PET_HOUSE)
+		{
+			Map<Integer, Integer> pets = pohScanner.scanMenagerie();
+			if (pets != null)
+			{
+				pets.forEach(quantities::putIfAbsent);
+			}
+		}
+
+		// Re-reads during a visit often find nothing new; don't save those again
+		Snapshot latest = latest(storage.location);
+		if (latest != null && visitEntries.contains(storage.location) && latest.getQuantities().equals(quantities))
+		{
+			return;
 		}
 		log.debug("Read {}: {} items", storage.location, quantities.size());
 		record(storage.location, quantities);
