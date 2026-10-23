@@ -39,12 +39,11 @@ public class UltimateBankPlugin extends Plugin
 	);
 
 	/**
-	 * Enable keys of features added after v1.0.0, and of options that change what a click does: on for new installs,
-	 * off for people updating (see {@link FeatureRollout}). Add every new feature's toggle here; never remove one.
+	 * Enable keys of features added after v1.0.0: on for new installs, off for people updating (see
+	 * {@link FeatureRollout}). Add every new feature's toggle here; never remove one.
 	 */
 	private static final List<String> NEW_FEATURE_TOGGLES = List.of(
-		"bankSearchEnabled",
-		"storageSavingsTagTabWithdrawAll"
+		"bankSearchEnabled"
 	);
 
 	@Inject

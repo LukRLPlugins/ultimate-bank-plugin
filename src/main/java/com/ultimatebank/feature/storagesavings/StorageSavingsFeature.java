@@ -36,7 +36,6 @@ import net.runelite.api.Client;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.KeyCode;
-import net.runelite.api.Menu;
 import net.runelite.api.MenuAction;
 import net.runelite.api.MenuEntry;
 import net.runelite.api.Skill;
@@ -47,7 +46,6 @@ import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
 import net.runelite.api.events.MenuOpened;
 import net.runelite.api.events.MenuOptionClicked;
-import net.runelite.api.events.PostMenuSort;
 import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.StatChanged;
 import net.runelite.api.events.VarbitChanged;
@@ -67,7 +65,6 @@ import net.runelite.client.input.MouseManager;
 import net.runelite.client.ui.ClientToolbar;
 import net.runelite.client.ui.NavigationButton;
 import net.runelite.client.ui.overlay.OverlayManager;
-import net.runelite.client.util.Text;
 
 /**
  * Flags banked items that could be stored elsewhere (POH storage, tackle box, STASH units, ...) and ranks
@@ -82,7 +79,6 @@ public class StorageSavingsFeature implements BankFeature
 	private static final String STASH_ROW = "STASH units";
 	/** Tooltips list at most this many STASH units per item */
 	private static final int MAX_STASH_IN_TOOLTIP = 3;
-	private static final String WITHDRAW_ALL = "Withdraw-All";
 
 	@Inject
 	private Client client;
@@ -300,48 +296,6 @@ public class StorageSavingsFeature implements BankFeature
 		if (event.getGroupId() == InterfaceID.BANKMAIN)
 		{
 			tagTab.setBankOpen(false);
-		}
-	}
-
-	/**
-	 * In the storable tab, makes Withdraw-All the left-click option by swapping it with the current one. Swaps
-	 * existing options only, like core's Menu Entry Swapper; shift keeps the normal left-click.
-	 */
-	@Subscribe
-	public void onPostMenuSort(PostMenuSort event)
-	{
-		if (!config.storageSavingsTagTabWithdrawAll() || client.isMenuOpen() || client.isKeyPressed(KeyCode.KC_SHIFT)
-			|| !tagTab.isOpen())
-		{
-			return;
-		}
-
-		Menu menu = client.getMenu();
-		MenuEntry[] entries = menu.getMenuEntries();
-		int top = entries.length - 1;
-		if (top < 0)
-		{
-			return;
-		}
-		MenuEntry leftClick = entries[top];
-		String option = Text.removeTags(leftClick.getOption());
-		if (leftClick.getParam1() != InterfaceID.Bankmain.ITEMS || !option.startsWith("Withdraw")
-			|| option.equals(WITHDRAW_ALL))
-		{
-			return;
-		}
-
-		for (int i = top - 1; i >= 0; i--)
-		{
-			MenuEntry entry = entries[i];
-			if (entry.getParam1() == leftClick.getParam1() && entry.getParam0() == leftClick.getParam0()
-				&& WITHDRAW_ALL.equals(Text.removeTags(entry.getOption())))
-			{
-				entries[i] = leftClick;
-				entries[top] = entry;
-				menu.setMenuEntries(entries);
-				return;
-			}
 		}
 	}
 
