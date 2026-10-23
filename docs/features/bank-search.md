@@ -18,12 +18,25 @@
 - **Container storages (#41):** the POH pet house, seed vault, tackle box, huntsman's kit and forestry kit are read
   from their item container while their interface is open (`core/snapshots/ContainerStorage`), with the same
   one-snapshot-per-visit rule.
-- **Varbit storages (#41):** the tool leprechaun and fossil storage are read from varbits
+- **Varbit storages (#41):** the tool leprechaun, fossil storage, master scroll book, Nightmare Zone potion
+  barrels, Elnock Inquisitor and mysterious stranger (Hallowed Sepulchre tools) are read from varbits
   (`core/snapshots/VarbitStorage`), decoded as the game's own scripts do (`[proc,farming_tools_getstored]`,
-  `[proc,fossil_storage_get]`; the watering can's item comes from game enum 136). They're read a couple of ticks
-  after login (recorded only if they changed and aren't empty, since the varbits may not be in yet), and like the
-  containers while their interface is open. Still missing (#41): the steel key ring, master scroll book, spice
-  rack, Flamtaer bag, Nightmare Zone, Elnock Inquisitor and mysterious stranger (to research).
+  `[proc,fossil_storage_get]`, `[proc,bookofscrolls_populate]`, `[proc,nzone_rewards_updatepotion]`,
+  `[proc,ii_elnock_storage_getstored]`, `[proc,hallowed_tools_getstored]`; the watering can's item comes from game
+  enum 136). They're read a couple of ticks after login (recorded only if they changed and aren't empty, since the
+  varbits may not be in yet), and like the containers while their interface is open. Nightmare Zone barrels count
+  doses, recorded as 1-dose potions.
+- **Steel key ring (#41):** no vars or container; its interface (`FAVOUR_KEYRING`) shows one key at a time plus
+  "Key total: N". Keys are collected from the shown key (`FavourKeyring.MAIN`) and the server-run script 861's
+  arguments (current, previous, next) while it's open (`KeyRingKeys`, pure). Recorded once every key has been
+  paged past, or once the last recorded keys plus those seen add up to the total (so adding a key is caught at once;
+  removing one needs a full page through).
+- **Potion storage (#41):** read whenever the bank is read (and on varp changes while it's open) by
+  `PotionStorageReader`, ported from core's package-private bank tags `PotionStorage`: for each potion enum in
+  enums 4826/4829, `runScript(POTIONSTORE_DOSES)` gives its doses, recorded as the fewest-dose item × doses so
+  nothing is lost; vials from `VarPlayerID.POTIONSTORE_VIALS`. Not recorded until it holds something.
+- **Not readable (#41):** the spice rack and Flamtaer bag have no container, varbit or interface data on the client;
+  they'd need their "Check" chat message, which nobody has captured yet.
 - **Sidebar panel** (magnifier icon), with one search box over two tabs:
   - **Items:** a collapsible section per location: name (POH in orange), item count, total value, "seen X ago"
     (orange/red once old/stale). A search opens every section it matches; searching a location name shows all its
@@ -87,6 +100,10 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
 - [ ] Log in: "Tool leprechaun" and "Fossil storage" sections appear without opening them (if they hold anything),
       with the right counts (compost, buckets, tools, watering can level; each fossil)
 - [ ] Deposit compost at a tool leprechaun and close it: a leprechaun History card with the change
+- [ ] Steel key ring: Check-keys, click Next until it wraps: a "Steel key ring" section with every key, as many as
+      "Key total". Close and reopen without paging: no new History card
+- [ ] (Needs the storage) Master scroll book, Nightmare Zone, Elnock Inquisitor, mysterious stranger: a section at
+      login with the right counts; potion storage: a section after opening the bank, each potion as 1-dose × doses
 - [ ] Set "Visits kept" to 2: after the next visit, at most one card per location
 - [ ] Large bank: scrolling stays smooth
 - [ ] Turn off "Ultimate Bank Search": button disappears; Storage savings unaffected (saved bank, "(N stored)")
