@@ -18,12 +18,14 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
 import net.runelite.api.Client;
+import net.runelite.api.EnumComposition;
 import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
@@ -47,6 +49,8 @@ public class StorageSnapshots
 	/** The costume room interface fills in its items a couple of ticks after it opens */
 	private static final int POH_SCAN_DELAY_TICKS = 2;
 	private static final int POH_SCAN_ATTEMPTS = 6;
+	/** Varbit storages are read this many ticks after logging in */
+	private static final int LOGIN_SCAN_DELAY_TICKS = 2;
 	private final Client client;
 	private final ConfigManager configManager;
 	private final UltimateBankConfig config;
@@ -66,12 +70,14 @@ public class StorageSnapshots
 	private SnapshotLocation pohVisit;
 	private int pohScanDelay = -1;
 	private int pohScanAttemptsLeft;
-	/** Container storages whose interface is open */
-	private final Set<ContainerStorage> openContainers = EnumSet.noneOf(ContainerStorage.class);
-	/** Container storages to read next tick */
-	private final Set<ContainerStorage> containerScans = EnumSet.noneOf(ContainerStorage.class);
-	/** Container storages read since their interface last opened */
-	private final Set<ContainerStorage> readThisOpen = EnumSet.noneOf(ContainerStorage.class);
+	/** Container and varbit storages whose interface is open */
+	private final Set<SnapshotLocation> openStorages = EnumSet.noneOf(SnapshotLocation.class);
+	/** Container and varbit storages to read next tick */
+	private final Set<SnapshotLocation> storageScans = EnumSet.noneOf(SnapshotLocation.class);
+	/** Container and varbit storages read since their interface last opened */
+	private final Set<SnapshotLocation> readThisOpen = EnumSet.noneOf(SnapshotLocation.class);
+	/** Ticks until varbit storages are read after logging in (their varbits arrive with the login) */
+	private int loginScanDelay = -1;
 	/** Ticks left to keep re-reading the menagerie: its pet list fills in after it opens */
 	private int menagerieRescans;
 
@@ -178,6 +184,7 @@ public class StorageSnapshots
 		if (event.getGameState() == GameState.LOGGED_IN)
 		{
 			load();
+			loginScanDelay = LOGIN_SCAN_DELAY_TICKS;
 		}
 		else
 		{
@@ -195,9 +202,9 @@ public class StorageSnapshots
 		}
 		else if (ContainerStorage.forInventory(event.getContainerId()) != null)
 		{
-			containerScans.add(ContainerStorage.forInventory(event.getContainerId()));
+			storageScans.add(ContainerStorage.forInventory(event.getContainerId()).location);
 		}
-		else if (event.getContainerId() == InventoryID.INV && openContainers.contains(ContainerStorage.PET_HOUSE))
+		else if (event.getContainerId() == InventoryID.INV && openStorages.contains(SnapshotLocation.PET_HOUSE))
 		{
 			// Taking a pet out (or putting one in) changes the inventory, not the menagerie's container
 			menagerieRescans = 2;
@@ -220,14 +227,14 @@ public class StorageSnapshots
 			pohScanAttemptsLeft = POH_SCAN_ATTEMPTS;
 		}
 
-		ContainerStorage storage = ContainerStorage.forInterface(event.getGroupId());
+		SnapshotLocation storage = interfaceStorage(event.getGroupId());
 		if (storage != null)
 		{
-			openContainers.add(storage);
+			openStorages.add(storage);
 			readThisOpen.remove(storage);
-			// The container may already be loaded and not change, so read it anyway
-			containerScans.add(storage);
-			if (storage == ContainerStorage.PET_HOUSE)
+			// Its contents may already be loaded and not change, so read it anyway
+			storageScans.add(storage);
+			if (storage == SnapshotLocation.PET_HOUSE)
 			{
 				menagerieRescans = 4;
 			}
@@ -237,10 +244,23 @@ public class StorageSnapshots
 	@Subscribe
 	public void onWidgetClosed(WidgetClosed event)
 	{
-		ContainerStorage storage = ContainerStorage.forInterface(event.getGroupId());
+		SnapshotLocation storage = interfaceStorage(event.getGroupId());
 		if (storage != null)
 		{
-			openContainers.remove(storage);
+			openStorages.remove(storage);
+		}
+	}
+
+	@Subscribe
+	public void onVarbitChanged(VarbitChanged event)
+	{
+		// Depositing at a varbit storage changes its varbits: read whichever is open again next tick
+		for (VarbitStorage storage : VarbitStorage.values())
+		{
+			if (openStorages.contains(storage.location))
+			{
+				storageScans.add(storage.location);
+			}
 		}
 	}
 
@@ -265,19 +285,29 @@ public class StorageSnapshots
 		if (menagerieRescans > 0)
 		{
 			menagerieRescans--;
-			containerScans.add(ContainerStorage.PET_HOUSE);
+			storageScans.add(SnapshotLocation.PET_HOUSE);
 		}
-		for (ContainerStorage storage : containerScans)
+		for (SnapshotLocation storage : storageScans)
 		{
-			scanContainer(storage);
+			scanStorage(storage);
 		}
-		containerScans.clear();
-		for (ContainerStorage storage : ContainerStorage.values())
+		storageScans.clear();
+		for (SnapshotLocation storage : SnapshotLocation.values())
 		{
-			if (!openContainers.contains(storage))
+			if (isInterfaceStorage(storage) && !openStorages.contains(storage))
 			{
-				visitEntries.remove(storage.location);
+				visitEntries.remove(storage);
 			}
+		}
+
+		if (loginScanDelay > 0)
+		{
+			loginScanDelay--;
+		}
+		else if (loginScanDelay == 0)
+		{
+			loginScanDelay = -1;
+			scanVarbitStoragesAtLogin();
 		}
 
 		if (bankVisit && client.getWidget(InterfaceID.Bankmain.ITEMS) == null)
@@ -297,8 +327,8 @@ public class StorageSnapshots
 		visitEntries.clear();
 		bankVisit = false;
 		pohVisit = null;
-		openContainers.clear();
-		containerScans.clear();
+		openStorages.clear();
+		storageScans.clear();
 		readThisOpen.clear();
 		menagerieRescans = 0;
 	}
@@ -325,15 +355,77 @@ public class StorageSnapshots
 		record(SnapshotLocation.BANK, quantities);
 	}
 
-	private void scanContainer(ContainerStorage storage)
+	/**
+	 * Reads an open container or varbit storage (or one that changed just as it closed).
+	 */
+	private void scanStorage(SnapshotLocation storage)
 	{
-		ItemContainer container = client.getItemContainer(storage.inventoryId);
-		// Only trust it while its interface is open (or it changed just as it closed). The menagerie's container
-		// may not exist when it holds no pet items, but its pets are still listed
-		if (container == null && storage != ContainerStorage.PET_HOUSE
-			|| !openContainers.contains(storage) && !visitEntries.contains(storage.location))
+		if (!openStorages.contains(storage) && !visitEntries.contains(storage))
 		{
 			return;
+		}
+		Map<Integer, Integer> quantities = readStorage(storage);
+		if (quantities == null)
+		{
+			return;
+		}
+
+		// Re-reads while it's open often find nothing new; save unchanged contents once per opening (that notes when
+		// it was seen), not on every re-read
+		Snapshot latest = latest(storage);
+		if (latest != null && readThisOpen.contains(storage) && latest.getQuantities().equals(quantities))
+		{
+			return;
+		}
+		readThisOpen.add(storage);
+		log.debug("Read {}: {} items", storage, quantities.size());
+		record(storage, quantities);
+	}
+
+	/**
+	 * Varbit storages are known without opening them. At login, record any that changed since last seen (the first
+	 * time, or after playing elsewhere). An empty read is skipped: the varbits may not be in yet, and emptying one
+	 * happens through its interface, which is recorded then.
+	 */
+	private void scanVarbitStoragesAtLogin()
+	{
+		for (VarbitStorage storage : VarbitStorage.values())
+		{
+			Map<Integer, Integer> quantities = readStorage(storage.location);
+			Snapshot latest = latest(storage.location);
+			if (quantities == null || quantities.isEmpty()
+				|| latest != null && latest.getQuantities().equals(quantities))
+			{
+				continue;
+			}
+			log.debug("Read {} at login: {} items", storage.location, quantities.size());
+			record(storage.location, quantities);
+		}
+	}
+
+	/**
+	 * @return a container or varbit storage's contents, or null if they can't be read now
+	 */
+	private Map<Integer, Integer> readStorage(SnapshotLocation location)
+	{
+		for (VarbitStorage storage : VarbitStorage.values())
+		{
+			if (storage.location == location)
+			{
+				return storage.read(client::getVarbitValue, this::wateringCan);
+			}
+		}
+
+		ContainerStorage storage = ContainerStorage.forLocation(location);
+		if (storage == null)
+		{
+			return null;
+		}
+		ItemContainer container = client.getItemContainer(storage.inventoryId);
+		// The menagerie's container may not exist when it holds no pet items, but its pets are still listed
+		if (container == null && storage != ContainerStorage.PET_HOUSE)
+		{
+			return null;
 		}
 		Map<Integer, Integer> quantities = new HashMap<>();
 		for (Item item : container == null ? new Item[0] : container.getItems())
@@ -351,17 +443,49 @@ public class StorageSnapshots
 				pets.forEach(quantities::putIfAbsent);
 			}
 		}
+		return quantities;
+	}
 
-		// Re-reads while it's open often find nothing new; save unchanged contents once per opening (that notes when
-		// it was seen), not on every re-read
-		Snapshot latest = latest(storage.location);
-		if (latest != null && readThisOpen.contains(storage) && latest.getQuantities().equals(quantities))
+	/**
+	 * @return the watering can item stored at the tool leprechaun for its varbit value, or -1
+	 */
+	private int wateringCan(int value)
+	{
+		EnumComposition cans = client.getEnum(VarbitStorage.WATERING_CANS_ENUM);
+		return cans == null ? -1 : cans.getIntValue(value);
+	}
+
+	/**
+	 * @return the container or varbit storage shown by this interface group, or null
+	 */
+	private static SnapshotLocation interfaceStorage(int interfaceId)
+	{
+		ContainerStorage container = ContainerStorage.forInterface(interfaceId);
+		if (container != null)
 		{
-			return;
+			return container.location;
 		}
-		readThisOpen.add(storage);
-		log.debug("Read {}: {} items", storage.location, quantities.size());
-		record(storage.location, quantities);
+		VarbitStorage varbits = VarbitStorage.forInterface(interfaceId);
+		return varbits == null ? null : varbits.location;
+	}
+
+	/**
+	 * @return whether the location is a container or varbit storage (its visits end when its interface closes)
+	 */
+	private static boolean isInterfaceStorage(SnapshotLocation location)
+	{
+		if (ContainerStorage.forLocation(location) != null)
+		{
+			return true;
+		}
+		for (VarbitStorage storage : VarbitStorage.values())
+		{
+			if (storage.location == location)
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private void scanPoh()

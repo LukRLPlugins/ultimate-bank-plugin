@@ -17,9 +17,13 @@
   ("Visits kept", default 5).
 - **Container storages (#41):** the POH pet house, seed vault, tackle box, huntsman's kit and forestry kit are read
   from their item container while their interface is open (`core/snapshots/ContainerStorage`), with the same
-  one-snapshot-per-visit rule. Still missing (#41 follow-ups): tool leprechaun and fossil storage (varbits), and
-  the steel key ring, master scroll book, spice rack, Flamtaer bag, Nightmare Zone, Elnock Inquisitor and
-  mysterious stranger (to research).
+  one-snapshot-per-visit rule.
+- **Varbit storages (#41):** the tool leprechaun and fossil storage are read from varbits
+  (`core/snapshots/VarbitStorage`), decoded as the game's own scripts do (`[proc,farming_tools_getstored]`,
+  `[proc,fossil_storage_get]`; the watering can's item comes from game enum 136). They're read a couple of ticks
+  after login (recorded only if they changed and aren't empty, since the varbits may not be in yet), and like the
+  containers while their interface is open. Still missing (#41): the steel key ring, master scroll book, spice
+  rack, Flamtaer bag, Nightmare Zone, Elnock Inquisitor and mysterious stranger (to research).
 - **Sidebar panel** (magnifier icon), with one search box over two tabs:
   - **Items:** a collapsible section per location: name (POH in orange), item count, total value, "seen X ago"
     (orange/red once old/stale). A search opens every section it matches; searching a location name shows all its
@@ -80,6 +84,9 @@ Stored per RS profile: `ultimatebank.snapshots.<location>` (JSON list of `{quant
       seed and close the vault: a seed vault History card with the change
 - [ ] Same for the tackle box, huntsman's kit, forestry kit (open each) and the POH pet house (orange)
 - [ ] Bank Savings: a banked seed that's also in the vault says "Seed vault (N stored)" on hover
+- [ ] Log in: "Tool leprechaun" and "Fossil storage" sections appear without opening them (if they hold anything),
+      with the right counts (compost, buckets, tools, watering can level; each fossil)
+- [ ] Deposit compost at a tool leprechaun and close it: a leprechaun History card with the change
 - [ ] Set "Visits kept" to 2: after the next visit, at most one card per location
 - [ ] Large bank: scrolling stays smooth
 - [ ] Turn off "Ultimate Bank Search": button disappears; Storage savings unaffected (saved bank, "(N stored)")
