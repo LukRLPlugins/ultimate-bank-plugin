@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.ultimatebank.UltimateBankConfig;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -25,11 +26,13 @@ import net.runelite.api.ItemContainer;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.RuneScapeProfileChanged;
@@ -51,11 +54,14 @@ public class StorageSnapshots
 	private static final int POH_SCAN_ATTEMPTS = 6;
 	/** Varbit storages are read this many ticks after logging in */
 	private static final int LOGIN_SCAN_DELAY_TICKS = 2;
+	/** [clientscript,script861]: the key ring interface showing a key, with (current, previous, next, total) */
+	private static final int KEY_RING_SCRIPT = 861;
 	private final Client client;
 	private final ConfigManager configManager;
 	private final UltimateBankConfig config;
 	private final Gson gson;
 	private final PohStorageScanner pohScanner;
+	private final PotionStorageReader potionStorage;
 
 	/** Oldest first */
 	private final Map<SnapshotLocation, List<Snapshot>> histories = new EnumMap<>(SnapshotLocation.class);
@@ -80,16 +86,22 @@ public class StorageSnapshots
 	private int loginScanDelay = -1;
 	/** Ticks left to keep re-reading the menagerie: its pet list fills in after it opens */
 	private int menagerieRescans;
+	/** Keys seen while the steel key ring is open; null while it's closed */
+	private KeyRingKeys keyRing;
+	private int keyRingSeenLogged = -1;
+	/** The potion store may have changed: read it next tick while the bank is open */
+	private boolean potionScanPending;
 
 	@Inject
 	StorageSnapshots(Client client, ConfigManager configManager, UltimateBankConfig config, Gson gson,
-		PohStorageScanner pohScanner)
+		PohStorageScanner pohScanner, PotionStorageReader potionStorage)
 	{
 		this.client = client;
 		this.configManager = configManager;
 		this.config = config;
 		this.gson = gson;
 		this.pohScanner = pohScanner;
+		this.potionStorage = potionStorage;
 	}
 
 	/**
@@ -226,6 +238,11 @@ public class StorageSnapshots
 			pohScanDelay = POH_SCAN_DELAY_TICKS;
 			pohScanAttemptsLeft = POH_SCAN_ATTEMPTS;
 		}
+		if (event.getGroupId() == InterfaceID.FAVOUR_KEYRING)
+		{
+			keyRing = new KeyRingKeys();
+			readThisOpen.remove(SnapshotLocation.STEEL_KEY_RING);
+		}
 
 		SnapshotLocation storage = interfaceStorage(event.getGroupId());
 		if (storage != null)
@@ -244,6 +261,11 @@ public class StorageSnapshots
 	@Subscribe
 	public void onWidgetClosed(WidgetClosed event)
 	{
+		if (event.getGroupId() == InterfaceID.FAVOUR_KEYRING)
+		{
+			keyRing = null;
+			visitEntries.remove(SnapshotLocation.STEEL_KEY_RING);
+		}
 		SnapshotLocation storage = interfaceStorage(event.getGroupId());
 		if (storage != null)
 		{
@@ -262,6 +284,30 @@ public class StorageSnapshots
 				storageScans.add(storage.location);
 			}
 		}
+		if (bankVisit)
+		{
+			// Potion store doses and vials are varps
+			potionScanPending = true;
+		}
+	}
+
+	@Subscribe
+	public void onScriptPreFired(ScriptPreFired event)
+	{
+		if (event.getScriptId() != KEY_RING_SCRIPT || keyRing == null || event.getScriptEvent() == null)
+		{
+			return;
+		}
+		Object[] args = event.getScriptEvent().getArguments();
+		log.debug("Key ring script args: {}", Arrays.toString(args));
+		// args[0] is the script; then the current, previous and next keys. Only take ones that really are keys.
+		for (int i = 1; args != null && i < Math.min(args.length, 4); i++)
+		{
+			if (args[i] instanceof Integer && isKey((Integer) args[i]))
+			{
+				keyRing.see((Integer) args[i]);
+			}
+		}
 	}
 
 	@Subscribe
@@ -271,6 +317,18 @@ public class StorageSnapshots
 		{
 			bankScanPending = false;
 			scanBank();
+		}
+		if (potionScanPending)
+		{
+			potionScanPending = false;
+			if (bankVisit)
+			{
+				scanPotionStorage();
+			}
+		}
+		if (keyRing != null)
+		{
+			scanKeyRing();
 		}
 
 		if (pohScanDelay > 0)
@@ -314,6 +372,7 @@ public class StorageSnapshots
 		{
 			bankVisit = false;
 			visitEntries.remove(SnapshotLocation.BANK);
+			visitEntries.remove(SnapshotLocation.POTION_STORAGE);
 		}
 		if (pohVisit != null && client.getWidget(InterfaceID.PohCostumes.UNIVERSE) == null)
 		{
@@ -331,6 +390,8 @@ public class StorageSnapshots
 		storageScans.clear();
 		readThisOpen.clear();
 		menagerieRescans = 0;
+		keyRing = null;
+		potionScanPending = false;
 	}
 
 	private void scanBank()
@@ -340,6 +401,12 @@ public class StorageSnapshots
 		if (bank == null || !bankVisit && client.getWidget(InterfaceID.Bankmain.ITEMS) == null)
 		{
 			return;
+		}
+		if (!bankVisit)
+		{
+			// Opened: read the potion store too
+			readThisOpen.remove(SnapshotLocation.POTION_STORAGE);
+			potionScanPending = true;
 		}
 		bankVisit = true;
 
@@ -365,13 +432,18 @@ public class StorageSnapshots
 			return;
 		}
 		Map<Integer, Integer> quantities = readStorage(storage);
-		if (quantities == null)
+		if (quantities != null)
 		{
-			return;
+			recordRead(storage, quantities);
 		}
+	}
 
-		// Re-reads while it's open often find nothing new; save unchanged contents once per opening (that notes when
-		// it was seen), not on every re-read
+	/**
+	 * Records a storage read while its interface is open. Re-reads often find nothing new; unchanged contents are
+	 * saved once per opening (that notes when it was seen), not on every re-read.
+	 */
+	private void recordRead(SnapshotLocation storage, Map<Integer, Integer> quantities)
+	{
 		Snapshot latest = latest(storage);
 		if (latest != null && readThisOpen.contains(storage) && latest.getQuantities().equals(quantities))
 		{
@@ -380,6 +452,56 @@ public class StorageSnapshots
 		readThisOpen.add(storage);
 		log.debug("Read {}: {} items", storage, quantities.size());
 		record(storage, quantities);
+	}
+
+	/**
+	 * The potion store's doses are only read with the bank open. Not recorded until it holds something, so players
+	 * without it get no empty location.
+	 */
+	private void scanPotionStorage()
+	{
+		Map<Integer, Integer> quantities = potionStorage.read();
+		if (quantities == null || quantities.isEmpty() && latest(SnapshotLocation.POTION_STORAGE) == null)
+		{
+			return;
+		}
+		recordRead(SnapshotLocation.POTION_STORAGE, quantities);
+	}
+
+	/**
+	 * The key ring shows one key at a time and its total; record it once every key is known.
+	 */
+	private void scanKeyRing()
+	{
+		Widget total = client.getWidget(InterfaceID.FavourKeyring.KEYTOTAL);
+		if (total != null)
+		{
+			keyRing.setTotal(KeyRingKeys.parseTotal(total.getText()));
+		}
+		Widget shown = client.getWidget(InterfaceID.FavourKeyring.MAIN);
+		if (shown != null && isKey(shown.getItemId()))
+		{
+			keyRing.see(shown.getItemId());
+		}
+
+		Snapshot latest = latest(SnapshotLocation.STEEL_KEY_RING);
+		Map<Integer, Integer> keys = keyRing.contents(latest == null ? Set.of() : latest.getQuantities().keySet());
+		if (keys == null)
+		{
+			if (keyRing.seenCount() != keyRingSeenLogged)
+			{
+				keyRingSeenLogged = keyRing.seenCount();
+				log.debug("Key ring: {} of {} keys seen (shown item {})", keyRing.seenCount(), keyRing.getTotal(),
+					shown == null ? null : shown.getItemId());
+			}
+			return;
+		}
+		recordRead(SnapshotLocation.STEEL_KEY_RING, keys);
+	}
+
+	private boolean isKey(int itemId)
+	{
+		return itemId > 0 && client.getItemDefinition(itemId).getName().toLowerCase(Locale.ROOT).contains("key");
 	}
 
 	/**
