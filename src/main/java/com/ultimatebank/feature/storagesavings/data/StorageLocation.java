@@ -137,6 +137,16 @@ public enum StorageLocation
 				return SnapshotLocation.TOOL_LEPRECHAUN;
 			case FOSSIL_STORAGE:
 				return SnapshotLocation.FOSSIL_STORAGE;
+			case MASTER_SCROLL_BOOK:
+				return SnapshotLocation.MASTER_SCROLL_BOOK;
+			case NIGHTMARE_ZONE:
+				return SnapshotLocation.NIGHTMARE_ZONE;
+			case ELNOCK_INQUISITOR:
+				return SnapshotLocation.ELNOCK_INQUISITOR;
+			case MYSTERIOUS_STRANGER:
+				return SnapshotLocation.MYSTERIOUS_STRANGER;
+			case STEEL_KEY_RING:
+				return SnapshotLocation.STEEL_KEY_RING;
 			default:
 				return null;
 		}

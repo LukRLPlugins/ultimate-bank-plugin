@@ -63,12 +63,53 @@ enum VarbitStorage
 		@Override
 		Map<Integer, Integer> read(IntUnaryOperator varbits, IntUnaryOperator wateringCans)
 		{
-			Map<Integer, Integer> items = new HashMap<>();
-			for (int[] fossil : FOSSILS)
-			{
-				put(items, fossil[1], varbits.applyAsInt(fossil[0]));
-			}
+			return readTable(FOSSILS, varbits);
+		}
+	},
+	MASTER_SCROLL_BOOK(SnapshotLocation.MASTER_SCROLL_BOOK, InterfaceID.BOOKOFSCROLLS)
+	{
+		@Override
+		Map<Integer, Integer> read(IntUnaryOperator varbits, IntUnaryOperator wateringCans)
+		{
+			Map<Integer, Integer> items = readTable(SCROLLS, varbits);
+			// Watson's count is split over two varbits ([proc,bookofscrolls_watson_get])
+			put(items, ItemID.TELEPORTSCROLL_WATSON, 256 * varbits.applyAsInt(VarbitID.BOOKOFSCROLLS_WATSON_HIGHBITS)
+				+ varbits.applyAsInt(VarbitID.BOOKOFSCROLLS_WATSON_LOWBITS));
 			return items;
+		}
+	},
+	NIGHTMARE_ZONE(SnapshotLocation.NIGHTMARE_ZONE, InterfaceID.NZONE_REWARDS)
+	{
+		@Override
+		Map<Integer, Integer> read(IntUnaryOperator varbits, IntUnaryOperator wateringCans)
+		{
+			// Each barrel's varbit counts doses, recorded as 1-dose potions
+			return readTable(NZONE_POTIONS, varbits);
+		}
+	},
+	ELNOCK_INQUISITOR(SnapshotLocation.ELNOCK_INQUISITOR, InterfaceID.II_ELNOCK_STORAGE)
+	{
+		@Override
+		Map<Integer, Integer> read(IntUnaryOperator varbits, IntUnaryOperator wateringCans)
+		{
+			Map<Integer, Integer> items = new HashMap<>();
+			// The net varbit says which net is stored, not how many
+			int net = varbits.applyAsInt(VarbitID.II_STORED_NET);
+			if (net == 1 || net == 2)
+			{
+				put(items, net == 1 ? ItemID.HUNTING_BUTTERFLY_NET : ItemID.II_MAGIC_BUTTERFLY_NET, 1);
+			}
+			put(items, ItemID.II_IMP_REPELLENT, varbits.applyAsInt(VarbitID.II_STORED_REPELLENT));
+			put(items, ItemID.II_IMPLING_JAR, varbits.applyAsInt(VarbitID.II_STORED_IMPLING_JARS));
+			return items;
+		}
+	},
+	MYSTERIOUS_STRANGER(SnapshotLocation.MYSTERIOUS_STRANGER, InterfaceID.HALLOWED_TOOLS)
+	{
+		@Override
+		Map<Integer, Integer> read(IntUnaryOperator varbits, IntUnaryOperator wateringCans)
+		{
+			return readTable(HALLOWED_TOOLS, varbits);
 		}
 	};
 
@@ -109,6 +150,47 @@ enum VarbitStorage
 		{VarbitID.FOSSIL_STORAGE_RARE_6, ItemID.FOSSIL_RARE_6},
 	};
 
+	/** Each teleport scroll's varbit and item ([proc,bookofscrolls_populate]); Watson's is read separately */
+	private static final int[][] SCROLLS = {
+		{VarbitID.BOOKOFSCROLLS_NARDAH, ItemID.TELEPORTSCROLL_NARDAH},
+		{VarbitID.BOOKOFSCROLLS_DIGSITE, ItemID.TELEPORTSCROLL_DIGSITE},
+		{VarbitID.BOOKOFSCROLLS_FELDIP, ItemID.TELEPORTSCROLL_FELDIP},
+		{VarbitID.BOOKOFSCROLLS_LUNARISLE, ItemID.TELEPORTSCROLL_LUNARISLE},
+		{VarbitID.BOOKOFSCROLLS_MORTTON, ItemID.TELEPORTSCROLL_MORTTON},
+		{VarbitID.BOOKOFSCROLLS_PESTCONTROL, ItemID.TELEPORTSCROLL_PESTCONTROL},
+		{VarbitID.BOOKOFSCROLLS_PISCATORIS, ItemID.TELEPORTSCROLL_PISCATORIS},
+		{VarbitID.BOOKOFSCROLLS_TAIBWO, ItemID.TELEPORTSCROLL_TAIBWO},
+		{VarbitID.BOOKOFSCROLLS_ELF, ItemID.TELEPORTSCROLL_ELF},
+		{VarbitID.BOOKOFSCROLLS_MOSLES, ItemID.TELEPORTSCROLL_MOSLES},
+		{VarbitID.BOOKOFSCROLLS_LUMBERYARD, ItemID.TELEPORTSCROLL_LUMBERYARD},
+		{VarbitID.BOOKOFSCROLLS_ZULANDRA, ItemID.TELEPORTSCROLL_ZULANDRA},
+		{VarbitID.BOOKOFSCROLLS_CERBERUS, ItemID.TELEPORTSCROLL_CERBERUS},
+		{VarbitID.BOOKOFSCROLLS_REVENANTS, ItemID.TELEPORTSCROLL_REVENANTS},
+		{VarbitID.BOOKOFSCROLLS_GUTHIXIAN_TEMPLE, ItemID.TELEPORTSCROLL_GUTHIXIAN_TEMPLE},
+		{VarbitID.BOOKOFSCROLLS_SPIDERCAVE, ItemID.TELEPORTSCROLL_SPIDERCAVE},
+		{VarbitID.BOOKOFSCROLLS_COLOSSAL_WYRM, ItemID.TELEPORTSCROLL_COLOSSAL_WYRM},
+		{VarbitID.BOOKOFSCROLLS_CHASMOFFIRE, ItemID.TELEPORTSCROLL_CHASMOFFIRE},
+		{VarbitID.BOOKOFSCROLLS_ARDEAGLAIS, ItemID.TELEPORTSCROLL_ARDEAGLAIS},
+	};
+
+	/** Each Nightmare Zone barrel's varbit (doses) and 1-dose potion ([proc,nzone_rewards_updatepotion]) */
+	private static final int[][] NZONE_POTIONS = {
+		{VarbitID.NZONE_POTION_1, ItemID.NZONE1DOSE2RANGERSPOTION},
+		{VarbitID.NZONE_POTION_2, ItemID.NZONE1DOSE2MAGICPOTION},
+		{VarbitID.NZONE_POTION_3, ItemID.NZONE1DOSEOVERLOADPOTION},
+		{VarbitID.NZONE_POTION_4, ItemID.NZONE1DOSEABSORPTIONPOTION},
+	};
+
+	/** Each Hallowed Sepulchre tool's varbit and item ([proc,hallowed_tools_getstored]) */
+	private static final int[][] HALLOWED_TOOLS = {
+		{VarbitID.HALLOWED_STORAGE_TOKEN, ItemID.HALLOWED_TOKEN},
+		{VarbitID.HALLOWED_STORAGE_GRAPPLE, ItemID.HALLOWED_GRAPPLE},
+		{VarbitID.HALLOWED_STORAGE_FOCUS, ItemID.HALLOWED_FOCUS},
+		{VarbitID.HALLOWED_STORAGE_SYMBOL, ItemID.HALLOWED_SYMBOL},
+		{VarbitID.HALLOWED_STORAGE_HAMMER, ItemID.HALLOWED_HAMMER},
+		{VarbitID.HALLOWED_STORAGE_RING, ItemID.HALLOWED_RING},
+	};
+
 	final SnapshotLocation location;
 	/** Interface group shown while it's open */
 	final int interfaceId;
@@ -139,6 +221,19 @@ enum VarbitStorage
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * @return the items of a table of {varbit, item} pairs, each varbit a count of its item
+	 */
+	private static Map<Integer, Integer> readTable(int[][] table, IntUnaryOperator varbits)
+	{
+		Map<Integer, Integer> items = new HashMap<>();
+		for (int[] entry : table)
+		{
+			put(items, entry[1], varbits.applyAsInt(entry[0]));
+		}
+		return items;
 	}
 
 	private static void put(Map<Integer, Integer> items, int itemId, int quantity)
