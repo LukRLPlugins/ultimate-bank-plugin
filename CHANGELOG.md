@@ -2,7 +2,7 @@
 
 What changed in each version of Ultimate Bank, newest first.
 
-## Unreleased
+## 1.4.0
 **New**
 - **Bank Tweaks** (off when you update, on for new installs): left-click the bank's "+" tag tab button to see your
   tag tabs. Right-click it to make a new tab.

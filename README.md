@@ -6,8 +6,8 @@ A bank toolkit for [RuneLite](https://runelite.net) with two sidebar panels:
   the most bank space.
 - **Ultimate Bank Search** shows everything you own across your bank and POH storage, and what each visit changed.
 
-> **New in 1.3:** bank value totals (GE or high alch) in Ultimate Bank Search, and a `storable` tab that stays in
-> order while you empty it.
+> **New in 1.4:** Ultimate Bank Search covers your seed vault, tackle box, kits, pet house, tool leprechaun and
+> fossil storage, and **Bank Tweaks** makes the "+" tag tab button list your tag tabs.
 > See the [changelog](CHANGELOG.md) for every version.
 
 ## Ultimate Bank Savings
@@ -52,8 +52,9 @@ would come from.
 </table>
 
 ## Ultimate Bank Search
-A panel (magnifier icon) that remembers your bank and each POH costume room storage, per character. Open each once
-so it's recorded.
+A panel (magnifier icon) that remembers your bank and storage, per character: the POH costume room storages and pet
+house, seed vault, tackle box, huntsman's kit and forestry kit (open each once so it's recorded), and your tool
+leprechaun and fossil storage (recorded when you log in).
 
 - **Items:** everything you own, grouped by location, with counts, values and when you last saw it. Search by item
   or location to find where something is.
@@ -74,6 +75,12 @@ so it's recorded.
   </tr>
 </table>
 
+## Bank Tweaks
+Small changes to what clicks in the bank do. Each only reorders a menu's own options.
+
+- **Left-click: view tag tabs:** the "+" button below your tag tabs lists your tag tabs. Right-click it to make a
+  new tab.
+
 ## Settings
 Everything is under **Configuration › Ultimate Bank**, and each panel can be turned off on its own:
 
@@ -83,9 +90,10 @@ Everything is under **Configuration › Ultimate Bank**, and each panel can be t
 | Bank Savings: Locations | Which storages to consider |
 | Bank Savings: Tiers | Your POH costume room tiers (auto-detect or pick one) |
 | Bank Search: General | Turn the search panel on, how many visits to keep, GE or high alch values |
+| Bank Tweaks | Turn the bank tweaks on, and each tweak |
 
-New features start **off** when you update, so nothing changes until you turn them on. Updated to 1.2? Turn on
-Ultimate Bank Search under *Bank Search: General*.
+New features start **off** when you update, so nothing changes until you turn them on. Updated from 1.1 or earlier?
+Turn on Ultimate Bank Search under *Bank Search: General*. Bank Tweaks (1.4) is under *Bank Tweaks*.
 
 ## Development
 Requires JDK 11.
