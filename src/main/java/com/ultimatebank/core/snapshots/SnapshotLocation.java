@@ -5,7 +5,7 @@ import lombok.Getter;
 
 /**
  * Places whose contents are snapshotted: the bank, each player-owned house costume room storage, and the storages
- * read from an item container ({@link ContainerStorage}). New values go at the end: the order is the panel's order.
+ * read from an item container ({@link ContainerStorage}) or varbits ({@link VarbitStorage}). New values go at the end: the order is the panel's order.
  */
 @Getter
 public enum SnapshotLocation
@@ -23,7 +23,10 @@ public enum SnapshotLocation
 	SEED_VAULT("Seed vault", false),
 	TACKLE_BOX("Tackle box", false),
 	HUNTSMANS_KIT("Huntsman's kit", false),
-	FORESTRY_KIT("Forestry kit", false);
+	FORESTRY_KIT("Forestry kit", false),
+	// Read from varbits (VarbitStorage)
+	TOOL_LEPRECHAUN("Tool leprechaun", false),
+	FOSSIL_STORAGE("Fossil storage", false);
 
 	private final String displayName;
 	private final boolean poh;

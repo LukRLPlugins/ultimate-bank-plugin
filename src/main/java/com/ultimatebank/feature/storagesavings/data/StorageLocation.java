@@ -133,6 +133,10 @@ public enum StorageLocation
 				return SnapshotLocation.HUNTSMANS_KIT;
 			case FORESTRY_KIT:
 				return SnapshotLocation.FORESTRY_KIT;
+			case TOOL_LEPRECHAUN:
+				return SnapshotLocation.TOOL_LEPRECHAUN;
+			case FOSSIL_STORAGE:
+				return SnapshotLocation.FOSSIL_STORAGE;
 			default:
 				return null;
 		}

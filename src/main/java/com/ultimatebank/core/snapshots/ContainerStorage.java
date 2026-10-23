@@ -42,6 +42,21 @@ enum ContainerStorage
 	}
 
 	/**
+	 * @return the storage recorded as this location, or null
+	 */
+	static ContainerStorage forLocation(SnapshotLocation location)
+	{
+		for (ContainerStorage storage : values())
+		{
+			if (storage.location == location)
+			{
+				return storage;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * @return the storage shown by this interface group, or null
 	 */
 	static ContainerStorage forInterface(int interfaceId)
