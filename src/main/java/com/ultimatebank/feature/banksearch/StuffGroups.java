@@ -22,6 +22,7 @@ final class StuffGroups
 	enum Sort
 	{
 		VALUE("Value"),
+		QUANTITY("Quantity"),
 		NAME("Name");
 
 		private final String label;
@@ -74,7 +75,36 @@ final class StuffGroups
 	static Comparator<StuffRow> comparator(Sort sort)
 	{
 		Comparator<StuffRow> byName = Comparator.comparing(StuffRow::getName, String.CASE_INSENSITIVE_ORDER);
-		return sort == Sort.NAME ? byName
-			: Comparator.comparingLong((StuffRow r) -> Math.abs(r.totalValue())).reversed().thenComparing(byName);
+		switch (sort)
+		{
+			case NAME:
+				return byName;
+			case QUANTITY:
+				return Comparator.comparingLong((StuffRow r) -> Math.abs((long) r.getQuantity())).reversed()
+					.thenComparing(byName);
+			default:
+				return Comparator.comparingLong((StuffRow r) -> Math.abs(r.totalValue())).reversed().thenComparing(byName);
+		}
+	}
+
+	/**
+	 * @return the total value of all rows
+	 */
+	static long totalValue(List<StuffRow> rows)
+	{
+		return rows.stream().mapToLong(StuffRow::totalValue).sum();
+	}
+
+	/**
+	 * @return a value's share of a total, e.g. "12.3%", "<0.1%", or null when there's nothing to share
+	 */
+	static String share(long value, long total)
+	{
+		if (value <= 0 || total <= 0)
+		{
+			return null;
+		}
+		double percent = value * 100.0 / total;
+		return percent < 0.1 ? "<0.1%" : String.format(Locale.ROOT, "%.1f%%", percent);
 	}
 }

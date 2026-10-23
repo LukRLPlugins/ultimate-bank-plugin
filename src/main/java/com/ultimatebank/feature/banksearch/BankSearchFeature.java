@@ -21,6 +21,7 @@ import javax.inject.Singleton;
 import javax.swing.SwingUtilities;
 import net.runelite.api.ItemComposition;
 import net.runelite.client.callback.ClientThread;
+import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.ConfigChanged;
 import net.runelite.client.game.ItemManager;
@@ -49,6 +50,9 @@ public class BankSearchFeature implements BankFeature
 	private UltimateBankConfig config;
 
 	@Inject
+	private ConfigManager configManager;
+
+	@Inject
 	private StorageSnapshots snapshots;
 
 	private final Consumer<SnapshotLocation> snapshotListener = location -> refresh();
@@ -64,7 +68,8 @@ public class BankSearchFeature implements BankFeature
 	@Override
 	public void startUp()
 	{
-		panel = new BankSearchPanel(itemManager::getImage);
+		panel = new BankSearchPanel(itemManager::getImage, config.bankSearchValueType(),
+			type -> configManager.setConfiguration(UltimateBankConfig.GROUP, "bankSearchValueType", type));
 		navButton = NavigationButton.builder()
 			.tooltip("Ultimate Bank Search")
 			.icon(createIcon())
@@ -105,6 +110,7 @@ public class BankSearchFeature implements BankFeature
 			return;
 		}
 
+		ValueType valueType = config.bankSearchValueType();
 		List<StuffRow> items = new ArrayList<>();
 		Map<SnapshotLocation, Long> seenAt = new EnumMap<>(SnapshotLocation.class);
 		Map<SnapshotLocation, List<Snapshot>> histories = new EnumMap<>(SnapshotLocation.class);
@@ -119,32 +125,33 @@ public class BankSearchFeature implements BankFeature
 			seenAt.put(location, latest.getTakenAt());
 			histories.put(location, snapshots.history(location));
 			latest.getQuantities().forEach((itemId, quantity) ->
-				items.add(row(info, itemId, quantity, location)));
+				items.add(row(info, valueType, itemId, quantity, location)));
 		}
 
 		List<StuffVisit> visits = new ArrayList<>();
 		for (VisitLog.Visit visit : VisitLog.build(histories))
 		{
 			List<StuffRow> rows = new ArrayList<>();
-			visit.getChanges().forEach((itemId, change) -> rows.add(row(info, itemId, change, visit.getLocation())));
+			visit.getChanges().forEach((itemId, change) -> rows.add(row(info, valueType, itemId, change, visit.getLocation())));
 			visits.add(new StuffVisit(visit.getLocation(), visit.getTakenAt(), rows));
 		}
 
 		int warn = config.bankSearchWarnHours();
 		int stale = config.bankSearchStaleHours();
-		SwingUtilities.invokeLater(() -> target.update(items, visits, seenAt, warn, stale));
+		SwingUtilities.invokeLater(() -> target.update(items, visits, seenAt, warn, stale, valueType));
 	}
 
 	/**
 	 * @param info name and price per item, looked up once per refresh
 	 */
-	private StuffRow row(Map<Integer, StuffRow> info, int itemId, int quantity, SnapshotLocation location)
+	private StuffRow row(Map<Integer, StuffRow> info, ValueType valueType, int itemId, int quantity,
+		SnapshotLocation location)
 	{
 		StuffRow known = info.computeIfAbsent(itemId, id ->
 		{
 			ItemComposition item = itemManager.getItemComposition(id);
-			long price = itemManager.getItemPrice(id);
-			return new StuffRow(id, item.getName(), 0, price > 0 ? price : item.getHaPrice(), location);
+			long price = valueType.unitPrice(id, itemManager.getItemPrice(id), item.getHaPrice());
+			return new StuffRow(id, item.getName(), 0, price, location);
 		});
 		return new StuffRow(itemId, known.getName(), quantity, known.getUnitPrice(), location);
 	}

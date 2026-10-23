@@ -1,5 +1,6 @@
 package com.ultimatebank;
 
+import com.ultimatebank.feature.banksearch.ValueType;
 import com.ultimatebank.feature.storagesavings.marker.MarkerStyle;
 import com.ultimatebank.feature.storagesavings.tiers.TierChoice;
 import java.awt.Color;
@@ -452,5 +453,18 @@ public interface UltimateBankConfig extends Config
 	default int bankSearchStaleHours()
 	{
 		return 168;
+	}
+
+	@ConfigItem(
+		keyName = "bankSearchValueType",
+		name = "Value items at",
+		description = "Price used for item values and totals in the panel (also switchable there).<br>"
+			+ "GE price uses high alch value for untradeables.",
+		section = bankSearchSection,
+		position = 4
+	)
+	default ValueType bankSearchValueType()
+	{
+		return ValueType.GE;
 	}
 }
