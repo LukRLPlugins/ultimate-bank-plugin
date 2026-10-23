@@ -11,10 +11,10 @@ All sources below are BSD-2-Clause (checked 2026-10-18). Re-check the license be
 | Sorted tabs | parked | Bank Skill Sorting (Frailrain). Phase 1 built, parked on branch `sorted-tabs` | https://github.com/Frailrain/Bank-Skill-Sorting |
 | Tag layouts (Layout tools) | parked | Bank Tag Layouts (geheur). Built, works, parked on branch `layout-tools` | https://github.com/geheur/bank-tag-custom-layouts |
 | Inventory setups | idea | Inventory Setups (dillydill123) | https://github.com/dillydill123/inventory-setups |
-| Bank value | folded into Ultimate Bank Search: total, quantity sort, GE/HA toggle, value share (#10, PR #39); v1.3.0 submitted | Bank Value (spudjb) | https://github.com/spudjb/runelite-bank-value |
+| Bank value | folded into Ultimate Bank Search: total, quantity sort, GE/HA toggle, value share (#10, PR #39); in v1.3.0 | Bank Value (spudjb) | https://github.com/spudjb/runelite-bank-value |
 | Better search | idea | Better Bank Search (KaasPeer1), Extended Bank Search (khendricksen) | https://github.com/KaasPeer1/better-bank-search, https://github.com/khendricksen/runelite-extended-bank-search |
 | Storage savings | released in v1.0.0 (Hub PR runelite/plugin-hub#18906); v1.1.0 released (runelite/plugin-hub#19211); storable tab order + focus (#32, PR #38) in v1.3.0 | Wasted Bank Space (mcgeer) + unmerged PRs (Brettgod1355 and others). Still to compare: POH Storage (tcpowell), Bank POH Search (Wozak-1) | https://github.com/mcgeer/WastedBankSpace, https://github.com/tcpowell/poh-storage, https://github.com/Wozak-1/bank-poh-searcher |
-| Ultimate Bank Search (was Where's my stuff) | done (#21, PR #33); v1.3.0 submitted (runelite/plugin-hub#19219); off for existing installs. More storages snapshotted (#41: containers PR #42, leprechaun + fossils PR #43) in v1.4.0; 7 storages left to research | Where's My Stuff / Bank POH Search (Wozak-1) | https://github.com/Wozak-1/bank-poh-searcher |
+| Ultimate Bank Search (was Where's my stuff) | done (#21, PR #33); v1.4.0 submitted (runelite/plugin-hub#19219); off for existing installs. More storages snapshotted (#41: containers PR #42, leprechaun + fossils PR #43) in v1.4.0; 7 storages left to research | Where's My Stuff / Bank POH Search (Wozak-1) | https://github.com/Wozak-1/bank-poh-searcher |
 | Bank Tweaks | done: View tag tabs on left-click (#28, PR #40); v1.4.0 submitted | original | |
 | Costume room highlighter | idea | Costume Room Highlighter (michaelperino) | https://github.com/michaelperino/CostumeRoomChecker |
 
