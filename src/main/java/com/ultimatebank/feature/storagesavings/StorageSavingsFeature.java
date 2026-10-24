@@ -53,6 +53,7 @@ import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.ItemID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.callback.ClientThread;
 import net.runelite.client.eventbus.Subscribe;
@@ -626,7 +627,27 @@ public class StorageSavingsFeature implements BankFeature
 			.collect(Collectors.toList());
 
 		log.debug("{} storable items in bank across {} locations", flagged.size(), ranking.size());
-		publish(new StorageSavingsState.Results(true, bankSnapshotAt, alsoStored.size(), Map.copyOf(flagged), ranking));
+		Map<Integer, Integer> icons = MarkerIcons.byItem(ranking, StorageSavingsFeature::iconForLocation);
+		publish(new StorageSavingsState.Results(true, bankSnapshotAt, alsoStored.size(), Map.copyOf(flagged), ranking, icons));
+	}
+
+	/**
+	 * @return the corner icon item for a ranking row's name, or -1 if there's none
+	 */
+	private static int iconForLocation(String name)
+	{
+		if (STASH_ROW.equals(name))
+		{
+			return ItemID.TRAIL_CLUE_MASTER;
+		}
+		for (StorageLocation location : StorageLocation.values())
+		{
+			if (location.getDisplayName().equals(name))
+			{
+				return location.getIconItemId();
+			}
+		}
+		return -1;
 	}
 
 	/**

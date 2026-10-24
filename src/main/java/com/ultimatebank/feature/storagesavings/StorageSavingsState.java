@@ -36,7 +36,8 @@ class StorageSavingsState
 	@Value
 	static class Results
 	{
-		static final Results EMPTY = new Results(false, 0, 0, Collections.emptyMap(), Collections.emptyList());
+		static final Results EMPTY = new Results(false, 0, 0, Collections.emptyMap(), Collections.emptyList(),
+			Collections.emptyMap());
 
 		/** Whether bank contents are known (seen this session, or from a saved snapshot) */
 		boolean bankSeen;
@@ -48,6 +49,8 @@ class StorageSavingsState
 		Map<Integer, List<String>> flagged;
 		/** Storage locations by bank slots they would free, most first */
 		List<LocationSavings> ranking;
+		/** Corner icon item ID by flagged item */
+		Map<Integer, Integer> markerIcons;
 	}
 
 	@Value
