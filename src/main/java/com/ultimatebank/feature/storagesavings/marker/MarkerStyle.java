@@ -7,7 +7,8 @@ public enum MarkerStyle
 {
 	ITEM_OUTLINE("Item outline"),
 	BOX_OUTLINE("Box outline"),
-	CORNER_TRIANGLE("Corner triangle");
+	CORNER_TRIANGLE("Corner triangle"),
+	CORNER_ICON("Corner icon");
 
 	private final String label;
 

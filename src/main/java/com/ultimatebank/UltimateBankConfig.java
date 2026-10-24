@@ -87,7 +87,7 @@ public interface UltimateBankConfig extends Config
 	@ConfigItem(
 		keyName = "storageSavingsMarkerCorner",
 		name = "Marker corner",
-		description = "Which corner the triangle goes in",
+		description = "Which corner the triangle or icon goes in",
 		section = storageSavingsSection,
 		position = 4
 	)
@@ -110,11 +110,24 @@ public interface UltimateBankConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "storageSavingsMarkerIconSize",
+		name = "Icon size",
+		description = "Size of the corner icon, in pixels",
+		section = storageSavingsSection,
+		position = 6
+	)
+	@Range(min = 10, max = 32)
+	default int storageSavingsMarkerIconSize()
+	{
+		return 16;
+	}
+
+	@ConfigItem(
 		keyName = "storageSavingsMarkerThickness",
 		name = "Outline thickness",
 		description = "Thickness of the item or box outline, in pixels",
 		section = storageSavingsSection,
-		position = 6
+		position = 7
 	)
 	@Range(min = 1, max = 4)
 	default int storageSavingsMarkerThickness()
@@ -127,7 +140,7 @@ public interface UltimateBankConfig extends Config
 		name = "Storable tag tab",
 		description = "Add a 'storable' bank tag tab that shows only storable items (requires the Bank Tags plugin)",
 		section = storageSavingsSection,
-		position = 7
+		position = 8
 	)
 	default boolean storageSavingsTagTab()
 	{
@@ -140,7 +153,7 @@ public interface UltimateBankConfig extends Config
 		description = "In the 'storable' tab, group items by the container they fit in, with a title above each group "
 			+ "(most bank slots freed first). An item that fits several containers shows in each group.",
 		section = storageSavingsSection,
-		position = 8
+		position = 9
 	)
 	default boolean storageSavingsTagTabGroups()
 	{
@@ -154,7 +167,7 @@ public interface UltimateBankConfig extends Config
 			+ "last seen; show how many copies a POH storage already holds; and count sets already stored toward a "
 			+ "storage's tier capacity. Open each POH storage once so it's recorded.",
 		section = storageSavingsSection,
-		position = 9
+		position = 10
 	)
 	default boolean storageSavingsUseSnapshots()
 	{
@@ -166,7 +179,7 @@ public interface UltimateBankConfig extends Config
 		name = "Sidebar panel",
 		description = "Show a sidebar panel ranking storage locations by how many bank slots they would free",
 		section = storageSavingsSection,
-		position = 10
+		position = 11
 	)
 	default boolean storageSavingsPanel()
 	{
@@ -178,7 +191,7 @@ public interface UltimateBankConfig extends Config
 		name = "Never flag best-in-slot",
 		description = "Don't flag best-in-slot items such as skillcapes, max cape or Ancestral, even if they could be stored",
 		section = storageSavingsSection,
-		position = 11
+		position = 12
 	)
 	default boolean storageSavingsKeepBis()
 	{
@@ -191,7 +204,7 @@ public interface UltimateBankConfig extends Config
 		description = "Comma-separated item names, item IDs or wildcards (e.g. *cape*) to never flag.<br>"
 			+ "Tip: shift-right-click a marked bank item to ignore or unignore it.",
 		section = storageSavingsSection,
-		position = 12
+		position = 13
 	)
 	default String storageSavingsIgnored()
 	{
@@ -210,7 +223,7 @@ public interface UltimateBankConfig extends Config
 		name = "STASH units",
 		description = "Flag items that could be stored in a clue scroll STASH unit",
 		section = storageSavingsSection,
-		position = 13
+		position = 14
 	)
 	default boolean storageSavingsStash()
 	{
@@ -223,7 +236,7 @@ public interface UltimateBankConfig extends Config
 		description = "Only count STASH units you've built and haven't filled yet.<br>"
 			+ "Open the STASH chart in your POH or Watson's noticeboard once to load which units are filled.",
 		section = storageSavingsSection,
-		position = 14
+		position = 15
 	)
 	default boolean storageSavingsStashBuiltOnly()
 	{

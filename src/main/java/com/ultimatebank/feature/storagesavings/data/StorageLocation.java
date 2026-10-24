@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import lombok.Getter;
+import net.runelite.api.gameval.ItemID;
 
 /**
  * Places other than the bank that can hold items. Item lists are ported from Wasted Bank Space, and the costume room
@@ -149,6 +150,59 @@ public enum StorageLocation
 				return SnapshotLocation.STEEL_KEY_RING;
 			default:
 				return null;
+		}
+	}
+
+	/**
+	 * @return an item whose sprite stands for this location (the corner icon marker)
+	 */
+	public int getIconItemId()
+	{
+		switch (this)
+		{
+			case TREASURE_CHEST:
+				return ItemID.TRAIL_REWARD_CASKET_MASTER;
+			case FANCY_DRESS_BOX:
+				return ItemID.MACRO_FROG_MASK;
+			case MAGIC_WARDROBE:
+				return ItemID.ANCESTRAL_HAT;
+			case ARMOUR_CASE:
+				return ItemID.CASTLEWARS_FULL_HELM;
+			case CAPE_RACK:
+				return ItemID.SKILLCAPE_MAX;
+			case TOY_BOX:
+				return ItemID.XMAS_YOYO;
+			case BOOKCASE:
+				return ItemID.THE_SHIELD_OF_ARRAV;
+			case PET_HOUSE:
+				return ItemID.KITTENOBJECT;
+			case SPICE_RACK:
+				return ItemID.HUNDRED_DAVE_SPICE_RED_4;
+			case SEED_VAULT:
+				return ItemID.SEED_BOX;
+			case TOOL_LEPRECHAUN:
+				return ItemID.RAKE;
+			case TACKLE_BOX:
+				return ItemID.TACKLE_BOX;
+			case HUNTSMANS_KIT:
+				return ItemID.HUNTSMANS_KIT;
+			case FORESTRY_KIT:
+				return ItemID.FORESTRY_KIT;
+			case STEEL_KEY_RING:
+				return ItemID.FAVOUR_KEY_RING;
+			case MASTER_SCROLL_BOOK:
+				return ItemID.BOOKOFSCROLLS_CHARGED;
+			case FOSSIL_STORAGE:
+				return ItemID.FOSSIL_LARGE_UNID;
+			case ELNOCK_INQUISITOR:
+				return ItemID.II_IMPLING_JAR;
+			case FLAMTAER_BAG:
+				return ItemID.FLAMTAER_BAG;
+			case NIGHTMARE_ZONE:
+				return ItemID.NZONE4DOSEABSORPTIONPOTION;
+			case MYSTERIOUS_STRANGER:
+			default:
+				return ItemID.HALLOWED_TOKEN;
 		}
 	}
 
