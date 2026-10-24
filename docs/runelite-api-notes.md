@@ -60,6 +60,20 @@ Current RuneLite client version at setup: **1.13.2**.
   building mode). Detect on `GameObjectSpawned`.
 - Bank placeholders have quantity 0 in the bank `ItemContainer`.
 
+- **Where other storages keep their contents** (#41, from javap + runelite/cs2-scripts):
+  - Varbits, known whenever logged in: tool leprechaun (`FARMING_TOOLS_*`), fossil storage (`FOSSIL_STORAGE_*`),
+    master scroll book (`BOOKOFSCROLLS_<X>`; Watson = `WATSON_HIGHBITS * 256 + WATSON_LOWBITS`), Nightmare Zone
+    (`NZONE_POTION_1..4` = doses; not `NZONE_ABSORB_POTION_EFFECTS`, which is your current absorption), Elnock
+    (`II_STORED_NET` is 1 = butterfly net / 2 = magic net, not a count), Hallowed Sepulchre tools
+    (`HALLOWED_STORAGE_*`).
+  - Steel key ring: nothing but its interface (`FAVOUR_KEYRING`), which the server drives with script 861 (current,
+    previous, next key, total), one key at a time.
+  - Potion storage: per-potion varps, decoded only by game scripts (`ScriptID.POTIONSTORE_DOSES` per potion enum in
+    `EnumID.POTIONSTORE_POTIONS` / `_UNFINISHED_POTIONS`). Core's `banktags.tabs.PotionStorage` does this but is
+    package-private. `runScript` can't run inside a script callback; do it from a tick.
+  - Spice rack and Flamtaer bag: nothing on the client (no container, var or interface); probably only the "Check"
+    chat message.
+
 - **Opening our settings from a panel:** there's no public API (`TopLevelConfigPanel` is package-private). The core
   Configuration plugin opens a plugin's settings on `OverlayMenuClicked` with `MenuAction.RUNELITE_OVERLAY_CONFIG`
   and an overlay whose `getPlugin()` is that plugin, so `core/SettingsOpener` posts one for a never-added overlay.

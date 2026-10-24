@@ -26,7 +26,15 @@ public enum SnapshotLocation
 	FORESTRY_KIT("Forestry kit", false),
 	// Read from varbits (VarbitStorage)
 	TOOL_LEPRECHAUN("Tool leprechaun", false),
-	FOSSIL_STORAGE("Fossil storage", false);
+	FOSSIL_STORAGE("Fossil storage", false),
+	MASTER_SCROLL_BOOK("Master scroll book", false),
+	NIGHTMARE_ZONE("Nightmare Zone", false),
+	ELNOCK_INQUISITOR("Elnock Inquisitor", false),
+	MYSTERIOUS_STRANGER("Mysterious stranger", false),
+	// Read from its interface while you page through it (KeyRingReader)
+	STEEL_KEY_RING("Steel key ring", false),
+	// Read from the bank's potion store (PotionStorageReader)
+	POTION_STORAGE("Potion storage", false);
 
 	private final String displayName;
 	private final boolean poh;

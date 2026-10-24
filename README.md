@@ -52,9 +52,13 @@ would come from.
 </table>
 
 ## Ultimate Bank Search
-A panel (magnifier icon) that remembers your bank and storage, per character: the POH costume room storages and pet
-house, seed vault, tackle box, huntsman's kit and forestry kit (open each once so it's recorded), and your tool
-leprechaun and fossil storage (recorded when you log in).
+A panel (magnifier icon) that remembers your bank and storage, per character:
+- the bank and its potion storage, the POH costume room storages and pet house, seed vault, tackle box, huntsman's kit
+  and forestry kit (open each once so it's recorded)
+- your tool leprechaun, fossil storage, master scroll book, Nightmare Zone potions, Elnock Inquisitor and Hallowed
+  Sepulchre tools (recorded when you log in)
+- your steel key ring (check it and page through every key once)
+
 
 - **Items:** everything you own, grouped by location, with counts, values and when you last saw it. Search by item
   or location to find where something is.

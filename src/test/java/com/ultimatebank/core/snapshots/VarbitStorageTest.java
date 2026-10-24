@@ -88,10 +88,65 @@ public class VarbitStorageTest
 	}
 
 	@Test
+	public void storagesWithNothingAreEmpty()
+	{
+		for (VarbitStorage storage : VarbitStorage.values())
+		{
+			assertTrue(storage.toString(), storage.read(id -> 0, CANS).isEmpty());
+		}
+	}
+
+	@Test
+	public void scrollBookCountsEachScrollAndJoinsWatsonsBits()
+	{
+		Map<Integer, Integer> varbits = new HashMap<>();
+		varbits.put(VarbitID.BOOKOFSCROLLS_NARDAH, 12);
+		varbits.put(VarbitID.BOOKOFSCROLLS_ARDEAGLAIS, 3);
+		varbits.put(VarbitID.BOOKOFSCROLLS_WATSON_HIGHBITS, 1);
+		varbits.put(VarbitID.BOOKOFSCROLLS_WATSON_LOWBITS, 44);
+		Map<Integer, Integer> items = VarbitStorage.MASTER_SCROLL_BOOK.read(id -> varbits.getOrDefault(id, 0), CANS);
+		assertEquals(Map.of(ItemID.TELEPORTSCROLL_NARDAH, 12, ItemID.TELEPORTSCROLL_ARDEAGLAIS, 3,
+			ItemID.TELEPORTSCROLL_WATSON, 300), items);
+	}
+
+	@Test
+	public void nightmareZoneRecordsDosesAsOneDosePotions()
+	{
+		Map<Integer, Integer> items = VarbitStorage.NIGHTMARE_ZONE.read(
+			id -> id == VarbitID.NZONE_POTION_3 ? 255 : id == VarbitID.NZONE_POTION_4 ? 1000 : 0, CANS);
+		assertEquals(Map.of(ItemID.NZONE1DOSEOVERLOADPOTION, 255, ItemID.NZONE1DOSEABSORPTIONPOTION, 1000), items);
+	}
+
+	@Test
+	public void elnockNetVarbitSaysWhichNet()
+	{
+		Map<Integer, Integer> varbits = new HashMap<>();
+		varbits.put(VarbitID.II_STORED_NET, 2);
+		varbits.put(VarbitID.II_STORED_IMPLING_JARS, 30);
+		varbits.put(VarbitID.II_STORED_REPELLENT, 1);
+		assertEquals(Map.of(ItemID.II_MAGIC_BUTTERFLY_NET, 1, ItemID.II_IMPLING_JAR, 30, ItemID.II_IMP_REPELLENT, 1),
+			VarbitStorage.ELNOCK_INQUISITOR.read(id -> varbits.getOrDefault(id, 0), CANS));
+		assertEquals(Map.of(ItemID.HUNTING_BUTTERFLY_NET, 1),
+			VarbitStorage.ELNOCK_INQUISITOR.read(id -> id == VarbitID.II_STORED_NET ? 1 : 0, CANS));
+	}
+
+	@Test
+	public void hallowedToolsReadOneVarbitEach()
+	{
+		Map<Integer, Integer> items = VarbitStorage.MYSTERIOUS_STRANGER.read(
+			id -> id == VarbitID.HALLOWED_STORAGE_TOKEN ? 5 : id == VarbitID.HALLOWED_STORAGE_RING ? 1 : 0, CANS);
+		assertEquals(Map.of(ItemID.HALLOWED_TOKEN, 5, ItemID.HALLOWED_RING, 1), items);
+	}
+
+	@Test
 	public void foundByInterface()
 	{
 		assertEquals(VarbitStorage.TOOL_LEPRECHAUN, VarbitStorage.forInterface(InterfaceID.FARMING_TOOLS));
 		assertEquals(VarbitStorage.FOSSIL_STORAGE, VarbitStorage.forInterface(InterfaceID.FOSSIL_STORAGE));
+		assertEquals(VarbitStorage.MASTER_SCROLL_BOOK, VarbitStorage.forInterface(InterfaceID.BOOKOFSCROLLS));
+		assertEquals(VarbitStorage.NIGHTMARE_ZONE, VarbitStorage.forInterface(InterfaceID.NZONE_REWARDS));
+		assertEquals(VarbitStorage.ELNOCK_INQUISITOR, VarbitStorage.forInterface(InterfaceID.II_ELNOCK_STORAGE));
+		assertEquals(VarbitStorage.MYSTERIOUS_STRANGER, VarbitStorage.forInterface(InterfaceID.HALLOWED_TOOLS));
 		assertNull(VarbitStorage.forInterface(InterfaceID.BANKMAIN));
 	}
 }

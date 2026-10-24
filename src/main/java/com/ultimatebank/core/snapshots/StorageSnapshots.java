@@ -4,10 +4,12 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.ultimatebank.UltimateBankConfig;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -17,19 +19,24 @@ import java.util.function.Consumer;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.ChatMessageType;
 import net.runelite.api.Client;
 import net.runelite.api.EnumComposition;
 import net.runelite.api.GameState;
 import net.runelite.api.Item;
 import net.runelite.api.ItemContainer;
+import net.runelite.api.events.ChatMessage;
 import net.runelite.api.events.GameStateChanged;
 import net.runelite.api.events.GameTick;
 import net.runelite.api.events.ItemContainerChanged;
+import net.runelite.api.events.ScriptPreFired;
 import net.runelite.api.events.VarbitChanged;
 import net.runelite.api.events.WidgetClosed;
 import net.runelite.api.events.WidgetLoaded;
 import net.runelite.api.gameval.InterfaceID;
 import net.runelite.api.gameval.InventoryID;
+import net.runelite.api.gameval.VarPlayerID;
+import net.runelite.api.widgets.Widget;
 import net.runelite.client.config.ConfigManager;
 import net.runelite.client.eventbus.Subscribe;
 import net.runelite.client.events.RuneScapeProfileChanged;
@@ -51,11 +58,14 @@ public class StorageSnapshots
 	private static final int POH_SCAN_ATTEMPTS = 6;
 	/** Varbit storages are read this many ticks after logging in */
 	private static final int LOGIN_SCAN_DELAY_TICKS = 2;
+	/** [clientscript,script861]: the key ring interface showing a key, with (current, previous, next, total) */
+	private static final int KEY_RING_SCRIPT = 861;
 	private final Client client;
 	private final ConfigManager configManager;
 	private final UltimateBankConfig config;
 	private final Gson gson;
 	private final PohStorageScanner pohScanner;
+	private final PotionStorageReader potionStorage;
 
 	/** Oldest first */
 	private final Map<SnapshotLocation, List<Snapshot>> histories = new EnumMap<>(SnapshotLocation.class);
@@ -74,22 +84,35 @@ public class StorageSnapshots
 	private final Set<SnapshotLocation> openStorages = EnumSet.noneOf(SnapshotLocation.class);
 	/** Container and varbit storages to read next tick */
 	private final Set<SnapshotLocation> storageScans = EnumSet.noneOf(SnapshotLocation.class);
+	/** Container storages whose container changed while their interface was closed, to read next tick */
+	private final Set<SnapshotLocation> closedContainerChanges = EnumSet.noneOf(SnapshotLocation.class);
 	/** Container and varbit storages read since their interface last opened */
 	private final Set<SnapshotLocation> readThisOpen = EnumSet.noneOf(SnapshotLocation.class);
 	/** Ticks until varbit storages are read after logging in (their varbits arrive with the login) */
 	private int loginScanDelay = -1;
-	/** Ticks left to keep re-reading the menagerie: its pet list fills in after it opens */
-	private int menagerieRescans;
+	/** The menagerie's pet varps changed: read the pet house next tick, open or not */
+	private boolean petHouseScanPending;
+	/** Item IDs in the inventory now and before its last change, to name a key put on the key ring */
+	private Set<Integer> inventoryIds = Set.of();
+	private Set<Integer> previousInventoryIds = Set.of();
+	/** Keys seen on the steel key ring this login. Kept across its openings: every Next click reopens it. */
+	private KeyRingKeys keyRing = new KeyRingKeys();
+	/** The key ring has been open since the last tick it was seen closed */
+	private boolean keyRingVisit;
+	private int keyRingSeenLogged = -1;
+	/** The potion store may have changed: read it next tick while the bank is open */
+	private boolean potionScanPending;
 
 	@Inject
 	StorageSnapshots(Client client, ConfigManager configManager, UltimateBankConfig config, Gson gson,
-		PohStorageScanner pohScanner)
+		PohStorageScanner pohScanner, PotionStorageReader potionStorage)
 	{
 		this.client = client;
 		this.configManager = configManager;
 		this.config = config;
 		this.gson = gson;
 		this.pohScanner = pohScanner;
+		this.potionStorage = potionStorage;
 	}
 
 	/**
@@ -195,6 +218,19 @@ public class StorageSnapshots
 	@Subscribe
 	public void onItemContainerChanged(ItemContainerChanged event)
 	{
+		if (event.getContainerId() == InventoryID.INV)
+		{
+			previousInventoryIds = inventoryIds;
+			inventoryIds = new HashSet<>();
+			for (Item item : event.getItemContainer().getItems())
+			{
+				if (item.getId() > 0)
+				{
+					inventoryIds.add(item.getId());
+				}
+			}
+		}
+
 		if (event.getContainerId() == InventoryID.BANK)
 		{
 			// Read it next tick, once the bank has finished updating
@@ -202,12 +238,16 @@ public class StorageSnapshots
 		}
 		else if (ContainerStorage.forInventory(event.getContainerId()) != null)
 		{
-			storageScans.add(ContainerStorage.forInventory(event.getContainerId()).location);
-		}
-		else if (event.getContainerId() == InventoryID.INV && openStorages.contains(SnapshotLocation.PET_HOUSE))
-		{
-			// Taking a pet out (or putting one in) changes the inventory, not the menagerie's container
-			menagerieRescans = 2;
+			SnapshotLocation location = ContainerStorage.forInventory(event.getContainerId()).location;
+			if (openStorages.contains(location) || visitEntries.contains(location))
+			{
+				storageScans.add(location);
+			}
+			else
+			{
+				// Sent while it's closed, e.g. a pet item put in the pet house: still its real contents
+				closedContainerChanges.add(location);
+			}
 		}
 		else if (event.getContainerId() == InventoryID.INV && client.getWidget(InterfaceID.PohCostumes.UNIVERSE) != null)
 		{
@@ -226,6 +266,11 @@ public class StorageSnapshots
 			pohScanDelay = POH_SCAN_DELAY_TICKS;
 			pohScanAttemptsLeft = POH_SCAN_ATTEMPTS;
 		}
+		if (event.getGroupId() == InterfaceID.FAVOUR_KEYRING && !keyRingVisit)
+		{
+			keyRingVisit = true;
+			readThisOpen.remove(SnapshotLocation.STEEL_KEY_RING);
+		}
 
 		SnapshotLocation storage = interfaceStorage(event.getGroupId());
 		if (storage != null)
@@ -234,10 +279,6 @@ public class StorageSnapshots
 			readThisOpen.remove(storage);
 			// Its contents may already be loaded and not change, so read it anyway
 			storageScans.add(storage);
-			if (storage == SnapshotLocation.PET_HOUSE)
-			{
-				menagerieRescans = 4;
-			}
 		}
 	}
 
@@ -262,6 +303,92 @@ public class StorageSnapshots
 				storageScans.add(storage.location);
 			}
 		}
+		if (bankVisit)
+		{
+			// Potion store doses and vials are varps
+			potionScanPending = true;
+		}
+		int varp = event.getVarpId();
+		if (varp == VarPlayerID.PRAYER20 || varp == VarPlayerID.MENAGERIE_CONTENTS2
+			|| varp == VarPlayerID.MENAGERIE_CONTENTS3)
+		{
+			petHouseScanPending = true;
+		}
+	}
+
+	@Subscribe
+	public void onChatMessage(ChatMessage event)
+	{
+		// Using a key on the key ring doesn't open it; only this message says what changed. While it's open, its
+		// interface already shows the change.
+		if (event.getType() != ChatMessageType.GAMEMESSAGE || keyRingVisit)
+		{
+			return;
+		}
+		String added = KeyRingKeys.addedKey(event.getMessage());
+		String removed = KeyRingKeys.removedKey(event.getMessage());
+		Snapshot latest = latest(SnapshotLocation.STEEL_KEY_RING);
+		// Without a full read of the ring first, one key says nothing about the rest
+		if (added == null && removed == null || latest == null)
+		{
+			return;
+		}
+
+		Set<Integer> keys = new HashSet<>(latest.getQuantities().keySet());
+		Set<Integer> candidates = new HashSet<>(inventoryIds);
+		candidates.addAll(previousInventoryIds);
+		candidates.addAll(keys);
+		int key = itemNamed(added != null ? added : removed, candidates);
+		if (key <= 0)
+		{
+			log.debug("Key ring: couldn't find the item for '{}'", event.getMessage());
+			return;
+		}
+		if (added != null)
+		{
+			keys.add(key);
+		}
+		else
+		{
+			keys.remove(key);
+		}
+		Map<Integer, Integer> contents = new HashMap<>();
+		keys.forEach(k -> contents.put(k, 1));
+		if (!contents.equals(latest.getQuantities()))
+		{
+			log.debug("Key ring: {} {}", added != null ? "added" : "removed", key);
+			record(SnapshotLocation.STEEL_KEY_RING, contents);
+		}
+	}
+
+	@Subscribe
+	public void onScriptPreFired(ScriptPreFired event)
+	{
+		if (event.getScriptId() != KEY_RING_SCRIPT || event.getScriptEvent() == null)
+		{
+			return;
+		}
+		Object[] args = event.getScriptEvent().getArguments();
+		log.debug("Key ring script args: {}", Arrays.toString(args));
+		// args[0] is the script; then the current, previous and next keys, and the total
+		if (args != null && args.length > 4 && args[4] instanceof Integer)
+		{
+			keyRing.setTotal((Integer) args[4]);
+		}
+		for (int i = 1; args != null && i < Math.min(args.length, 4); i++)
+		{
+			if (args[i] instanceof Integer && isKey((Integer) args[i]))
+			{
+				if (i == 1)
+				{
+					keyRing.show((Integer) args[i]);
+				}
+				else
+				{
+					keyRing.see((Integer) args[i]);
+				}
+			}
+		}
 	}
 
 	@Subscribe
@@ -271,6 +398,26 @@ public class StorageSnapshots
 		{
 			bankScanPending = false;
 			scanBank();
+		}
+		if (potionScanPending)
+		{
+			potionScanPending = false;
+			if (bankVisit)
+			{
+				scanPotionStorage();
+			}
+		}
+		if (keyRingVisit)
+		{
+			if (client.getWidget(InterfaceID.FavourKeyring.KEYTOTAL) == null)
+			{
+				keyRingVisit = false;
+				visitEntries.remove(SnapshotLocation.STEEL_KEY_RING);
+			}
+			else
+			{
+				scanKeyRing();
+			}
 		}
 
 		if (pohScanDelay > 0)
@@ -282,11 +429,16 @@ public class StorageSnapshots
 			scanPoh();
 		}
 
-		if (menagerieRescans > 0)
+		if (petHouseScanPending)
 		{
-			menagerieRescans--;
-			storageScans.add(SnapshotLocation.PET_HOUSE);
+			petHouseScanPending = false;
+			scanPetHouseVarps();
 		}
+		for (SnapshotLocation storage : closedContainerChanges)
+		{
+			scanClosedContainer(storage);
+		}
+		closedContainerChanges.clear();
 		for (SnapshotLocation storage : storageScans)
 		{
 			scanStorage(storage);
@@ -314,6 +466,7 @@ public class StorageSnapshots
 		{
 			bankVisit = false;
 			visitEntries.remove(SnapshotLocation.BANK);
+			visitEntries.remove(SnapshotLocation.POTION_STORAGE);
 		}
 		if (pohVisit != null && client.getWidget(InterfaceID.PohCostumes.UNIVERSE) == null)
 		{
@@ -329,8 +482,12 @@ public class StorageSnapshots
 		pohVisit = null;
 		openStorages.clear();
 		storageScans.clear();
+		closedContainerChanges.clear();
 		readThisOpen.clear();
-		menagerieRescans = 0;
+		petHouseScanPending = false;
+		keyRing = new KeyRingKeys();
+		keyRingVisit = false;
+		potionScanPending = false;
 	}
 
 	private void scanBank()
@@ -340,6 +497,12 @@ public class StorageSnapshots
 		if (bank == null || !bankVisit && client.getWidget(InterfaceID.Bankmain.ITEMS) == null)
 		{
 			return;
+		}
+		if (!bankVisit)
+		{
+			// Opened: read the potion store too
+			readThisOpen.remove(SnapshotLocation.POTION_STORAGE);
+			potionScanPending = true;
 		}
 		bankVisit = true;
 
@@ -365,13 +528,18 @@ public class StorageSnapshots
 			return;
 		}
 		Map<Integer, Integer> quantities = readStorage(storage);
-		if (quantities == null)
+		if (quantities != null)
 		{
-			return;
+			recordRead(storage, quantities);
 		}
+	}
 
-		// Re-reads while it's open often find nothing new; save unchanged contents once per opening (that notes when
-		// it was seen), not on every re-read
+	/**
+	 * Records a storage read while its interface is open. Re-reads often find nothing new; unchanged contents are
+	 * saved once per opening (that notes when it was seen), not on every re-read.
+	 */
+	private void recordRead(SnapshotLocation storage, Map<Integer, Integer> quantities)
+	{
 		Snapshot latest = latest(storage);
 		if (latest != null && readThisOpen.contains(storage) && latest.getQuantities().equals(quantities))
 		{
@@ -380,6 +548,57 @@ public class StorageSnapshots
 		readThisOpen.add(storage);
 		log.debug("Read {}: {} items", storage, quantities.size());
 		record(storage, quantities);
+	}
+
+	/**
+	 * The potion store's doses are only read with the bank open. Not recorded until it holds something, so players
+	 * without it get no empty location.
+	 */
+	private void scanPotionStorage()
+	{
+		Map<Integer, Integer> quantities = potionStorage.read();
+		if (quantities == null || quantities.isEmpty() && latest(SnapshotLocation.POTION_STORAGE) == null)
+		{
+			return;
+		}
+		recordRead(SnapshotLocation.POTION_STORAGE, quantities);
+	}
+
+	/**
+	 * The key ring shows one key at a time and its total; record it once every key is known.
+	 */
+	private void scanKeyRing()
+	{
+		Widget total = client.getWidget(InterfaceID.FavourKeyring.KEYTOTAL);
+		int shownTotal = total == null ? -1 : KeyRingKeys.parseTotal(total.getText());
+		if (shownTotal >= 0)
+		{
+			keyRing.setTotal(shownTotal);
+		}
+		Widget shown = client.getWidget(InterfaceID.FavourKeyring.MAIN);
+		if (shown != null && isKey(shown.getItemId()))
+		{
+			keyRing.see(shown.getItemId());
+		}
+
+		Snapshot latest = latest(SnapshotLocation.STEEL_KEY_RING);
+		Map<Integer, Integer> keys = keyRing.contents(latest == null ? Set.of() : latest.getQuantities().keySet());
+		if (keys == null)
+		{
+			if (keyRing.seenCount() != keyRingSeenLogged)
+			{
+				keyRingSeenLogged = keyRing.seenCount();
+				log.debug("Key ring: {} of {} keys seen (shown item {})", keyRing.seenCount(), keyRing.getTotal(),
+					shown == null ? null : shown.getItemId());
+			}
+			return;
+		}
+		recordRead(SnapshotLocation.STEEL_KEY_RING, keys);
+	}
+
+	private boolean isKey(int itemId)
+	{
+		return itemId > 0 && client.getItemDefinition(itemId).getName().toLowerCase(Locale.ROOT).contains("key");
 	}
 
 	/**
@@ -422,7 +641,7 @@ public class StorageSnapshots
 			return null;
 		}
 		ItemContainer container = client.getItemContainer(storage.inventoryId);
-		// The menagerie's container may not exist when it holds no pet items, but its pets are still listed
+		// The menagerie's container may not exist when it holds no pet items, but its pets are still known
 		if (container == null && storage != ContainerStorage.PET_HOUSE)
 		{
 			return null;
@@ -437,13 +656,116 @@ public class StorageSnapshots
 		}
 		if (storage == ContainerStorage.PET_HOUSE)
 		{
-			Map<Integer, Integer> pets = pohScanner.scanMenagerie();
+			Set<Integer> pets = menageriePets();
 			if (pets != null)
 			{
-				pets.forEach(quantities::putIfAbsent);
+				pets.forEach(pet -> quantities.putIfAbsent(pet, 1));
 			}
 		}
 		return quantities;
+	}
+
+	/**
+	 * Records a container storage whose container changed while it was closed. An empty read is skipped (the game may
+	 * send an empty container before the real one).
+	 */
+	private void scanClosedContainer(SnapshotLocation storage)
+	{
+		Map<Integer, Integer> quantities = readStorage(storage);
+		Snapshot latest = latest(storage);
+		if (quantities == null || quantities.isEmpty() || latest != null && latest.getQuantities().equals(quantities))
+		{
+			return;
+		}
+		log.debug("Read {} while closed: {} items", storage, quantities.size());
+		record(storage, quantities);
+	}
+
+	/**
+	 * Dropping a pet in the house (or taking one out) changes the menagerie's varps without opening it: record the
+	 * pets now, keeping the pet items from when it was last open. While it's open, it's read as usual.
+	 */
+	private void scanPetHouseVarps()
+	{
+		if (openStorages.contains(SnapshotLocation.PET_HOUSE))
+		{
+			storageScans.add(SnapshotLocation.PET_HOUSE);
+			return;
+		}
+		Set<Integer> pets = menageriePets();
+		EnumComposition petEnum = client.getEnum(MenageriePets.PETS_ENUM);
+		Snapshot latest = latest(SnapshotLocation.PET_HOUSE);
+		if (pets == null || petEnum == null || latest == null && pets.isEmpty())
+		{
+			return;
+		}
+
+		Set<Integer> allPets = new HashSet<>();
+		for (int pet : petEnum.getIntVals())
+		{
+			allPets.add(pet);
+		}
+		Map<Integer, Integer> quantities = new HashMap<>();
+		boolean hadPets = false;
+		if (latest != null)
+		{
+			for (Map.Entry<Integer, Integer> entry : latest.getQuantities().entrySet())
+			{
+				if (allPets.contains(entry.getKey()))
+				{
+					hadPets = true;
+				}
+				else
+				{
+					quantities.put(entry.getKey(), entry.getValue());
+				}
+			}
+		}
+		// Varps that read empty may just not be sent yet (e.g. at login); a real emptying is seen when it's open
+		if (pets.isEmpty() && hadPets)
+		{
+			return;
+		}
+		pets.forEach(pet -> quantities.put(pet, 1));
+		if (latest != null && latest.getQuantities().equals(quantities))
+		{
+			return;
+		}
+		log.debug("Pet house varps: {} pets", pets.size());
+		record(SnapshotLocation.PET_HOUSE, quantities);
+	}
+
+	/**
+	 * @return the item of each pet living in the menagerie, or null if the game's pet list isn't loaded
+	 */
+	private Set<Integer> menageriePets()
+	{
+		EnumComposition petEnum = client.getEnum(MenageriePets.PETS_ENUM);
+		if (petEnum == null)
+		{
+			return null;
+		}
+		int[] varps = {
+			client.getVarpValue(VarPlayerID.PRAYER20),
+			client.getVarpValue(VarPlayerID.MENAGERIE_CONTENTS2),
+			client.getVarpValue(VarPlayerID.MENAGERIE_CONTENTS3),
+		};
+		return MenageriePets.read(varps, petEnum::getIntValue);
+	}
+
+	/**
+	 * @return the item among the candidates with this name (any case), or -1
+	 */
+	private int itemNamed(String name, Set<Integer> candidates)
+	{
+		for (int itemId : candidates)
+		{
+			if (client.getItemDefinition(itemId).getName().equalsIgnoreCase(name))
+			{
+				return itemId;
+			}
+		}
+		return -1;
 	}
 
 	/**

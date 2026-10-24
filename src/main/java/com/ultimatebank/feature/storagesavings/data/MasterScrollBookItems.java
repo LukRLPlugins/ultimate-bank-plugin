@@ -53,6 +53,7 @@ final class MasterScrollBookItems
 		ItemID.TELEPORTSCROLL_SPIDERCAVE,
 		ItemID.TELEPORTSCROLL_WATSON,
 		ItemID.TELEPORTSCROLL_ZULANDRA,
+		ItemID.TELEPORTSCROLL_ARDEAGLAIS,
 	};
 
 	private MasterScrollBookItems()
