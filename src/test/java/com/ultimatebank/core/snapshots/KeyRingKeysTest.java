@@ -99,6 +99,16 @@ public class KeyRingKeysTest
 	}
 
 	@Test
+	public void readsAddAndRemoveMessages()
+	{
+		assertEquals("dusty key", KeyRingKeys.addedKey("You add the dusty key to your key ring."));
+		assertEquals("dusty key", KeyRingKeys.removedKey("You remove the dusty key from your key ring."));
+		assertNull(KeyRingKeys.addedKey("You remove the dusty key from your key ring."));
+		assertNull(KeyRingKeys.addedKey("This is the first key on your key ring."));
+		assertNull(KeyRingKeys.removedKey(null));
+	}
+
+	@Test
 	public void parsesTheTotal()
 	{
 		assertEquals(12, KeyRingKeys.parseTotal("Key total: 12"));

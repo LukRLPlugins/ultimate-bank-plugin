@@ -2,6 +2,7 @@ package com.ultimatebank.core.snapshots;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -97,6 +98,36 @@ final class KeyRingKeys
 		Map<Integer, Integer> contents = new HashMap<>();
 		keys.forEach(key -> contents.put(key, 1));
 		return contents;
+	}
+
+	/**
+	 * @return the key named by "You add the dusty key to your key ring." (lower case), or null
+	 */
+	static String addedKey(String message)
+	{
+		return keyIn(message, "you add the ", " to your key ring.");
+	}
+
+	/**
+	 * @return the key named by "You remove the dusty key from your key ring." (lower case), or null
+	 */
+	static String removedKey(String message)
+	{
+		return keyIn(message, "you remove the ", " from your key ring.");
+	}
+
+	private static String keyIn(String message, String start, String end)
+	{
+		if (message == null)
+		{
+			return null;
+		}
+		String text = message.replaceAll("<[^>]*>", "").trim().toLowerCase(Locale.ROOT);
+		if (!text.startsWith(start) || !text.endsWith(end) || text.length() <= start.length() + end.length())
+		{
+			return null;
+		}
+		return text.substring(start.length(), text.length() - end.length());
 	}
 
 	/**

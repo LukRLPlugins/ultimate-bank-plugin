@@ -18,6 +18,9 @@
 - **Container storages (#41):** the POH pet house, seed vault, tackle box, huntsman's kit and forestry kit are read
   from their item container while their interface is open (`core/snapshots/ContainerStorage`), with the same
   one-snapshot-per-visit rule.
+  The pet house's real pets aren't in its container: they're bits in varps `PRAYER20`, `MENAGERIE_CONTENTS2` and
+  `MENAGERIE_CONTENTS3`, mapped to items by game enum 985 (`MenageriePets`, as `[proc,poh_menagerie_drawlist]`
+  does). When those change (dropping a pet in the house), the pet house is recorded without opening it.
 - **Varbit storages (#41):** the tool leprechaun, fossil storage, master scroll book, Nightmare Zone potion
   barrels, Elnock Inquisitor and mysterious stranger (Hallowed Sepulchre tools) are read from varbits
   (`core/snapshots/VarbitStorage`), decoded as the game's own scripts do (`[proc,farming_tools_getstored]`,
@@ -29,8 +32,10 @@
 - **Steel key ring (#41):** no vars or container; its interface (`FAVOUR_KEYRING`) shows one key at a time plus
   "Key total: N". Keys are collected from the shown key (`FavourKeyring.MAIN`) and the server-run script 861's
   arguments (current, previous, next) while it's open (`KeyRingKeys`, pure). Recorded once every key has been
-  paged past, or once the last recorded keys plus those seen add up to the total (so adding a key is caught at once;
-  removing one needs a full page through).
+  paged past, or once the last recorded keys plus those seen add up to the total. Removing a key redraws the ring
+  with the next key and a total one lower, so the key that was showing is the one removed. Using a key on the ring
+  (or removing one) outside it is caught from the chat message ("You add the dusty key to your key ring."), matched
+  by name to the inventory.
 - **Potion storage (#41):** read whenever the bank is read (and on varp changes while it's open) by
   `PotionStorageReader`, ported from core's package-private bank tags `PotionStorage`: for each potion enum in
   enums 4826/4829, `runScript(POTIONSTORE_DOSES)` gives its doses, recorded as the fewest-dose item × doses so
