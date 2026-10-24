@@ -93,7 +93,8 @@ class StorableTitlesOverlay extends Overlay
 			}
 
 			String title = entry.getValue();
-			Rectangle bounds = new Rectangle(clip.x, rowTop, clip.width, ROW_HEIGHT).intersection(clip);
+			// From where the items start: the tag tabs to the left of them must still take their own clicks
+			Rectangle bounds = new Rectangle(left, rowTop, clip.x + clip.width - left, ROW_HEIGHT).intersection(clip);
 			rows.add(new TitleRow(bounds, title));
 			boolean hovered = mouse != null && bounds.contains(mouse.getX(), mouse.getY());
 

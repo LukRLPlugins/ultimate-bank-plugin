@@ -2,6 +2,10 @@
 
 What changed in each version of Ultimate Bank, newest first.
 
+## 1.5.1
+**Fixed**
+- `storable` tab: tag tabs beside a group's title can be clicked again (the title's click area covered them).
+
 ## 1.5.0
 **New**
 - Ultimate Bank Search now also records your **master scroll book, Nightmare Zone potions, Elnock Inquisitor and
