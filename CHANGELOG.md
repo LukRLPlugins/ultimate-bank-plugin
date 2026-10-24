@@ -6,7 +6,11 @@ What changed in each version of Ultimate Bank, newest first.
 **New**
 - Ultimate Bank Search now also records your **master scroll book, Nightmare Zone potions, Elnock Inquisitor and
   Hallowed Sepulchre tools** (no need to open them), your **potion storage** (open the bank), and your **steel key
-  ring** (check it and page through every key once).
+  ring** (check it and page through every key once; keys added or removed after that are caught right away).
+- Pets dropped in your house show up in the pet house straight away, without opening it.
+
+**Fixed**
+- Bank Search: clicking anywhere on a section's heading (including its name) opens and closes it.
 
 ## 1.4.0
 **New**
