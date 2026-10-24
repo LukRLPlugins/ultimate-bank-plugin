@@ -20,7 +20,9 @@
   one-snapshot-per-visit rule.
   The pet house's real pets aren't in its container: they're bits in varps `PRAYER20`, `MENAGERIE_CONTENTS2` and
   `MENAGERIE_CONTENTS3`, mapped to items by game enum 985 (`MenageriePets`, as `[proc,poh_menagerie_drawlist]`
-  does). When those change (dropping a pet in the house), the pet house is recorded without opening it.
+  does). When those change (dropping a pet in the house), the pet house is recorded without opening it. Pet
+  *items* (e.g. a fishbowl) put in while it's closed can't be seen: the game sends no container update or message,
+  so they show up the next time it's opened.
 - **Varbit storages (#41):** the tool leprechaun, fossil storage, master scroll book, Nightmare Zone potion
   barrels, Elnock Inquisitor and mysterious stranger (Hallowed Sepulchre tools) are read from varbits
   (`core/snapshots/VarbitStorage`), decoded as the game's own scripts do (`[proc,farming_tools_getstored]`,
