@@ -306,7 +306,14 @@ public class StorageSnapshots
 		{
 			if (args[i] instanceof Integer && isKey((Integer) args[i]))
 			{
-				keyRing.see((Integer) args[i]);
+				if (i == 1)
+				{
+					keyRing.show((Integer) args[i]);
+				}
+				else
+				{
+					keyRing.see((Integer) args[i]);
+				}
 			}
 		}
 	}

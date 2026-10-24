@@ -44,6 +44,30 @@ public class KeyRingKeysTest
 	}
 
 	@Test
+	public void removingTheShownKeyIsKnownAtOnce()
+	{
+		KeyRingKeys ring = new KeyRingKeys();
+		ring.setTotal(3);
+		ring.show(2);
+		// Remove: the ring shows the next key with one fewer
+		ring.setTotal(2);
+		ring.show(3);
+		assertEquals(Map.of(1, 1, 3, 1), ring.contents(Set.of(1, 2, 3)));
+	}
+
+	@Test
+	public void addingAKeyBackForgetsItsRemoval()
+	{
+		KeyRingKeys ring = new KeyRingKeys();
+		ring.setTotal(2);
+		ring.show(2);
+		ring.setTotal(1);
+		ring.setTotal(2);
+		ring.show(2);
+		assertEquals(Map.of(1, 1, 2, 1), ring.contents(Set.of(1)));
+	}
+
+	@Test
 	public void aNewTotalStartsOver()
 	{
 		KeyRingKeys ring = new KeyRingKeys();
