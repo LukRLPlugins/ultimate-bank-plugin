@@ -248,9 +248,8 @@ class BankSearchPanel extends PluginPanel
 			{
 				card.add(rows(group.getRows(), false), BorderLayout.CENTER);
 			}
-			heading.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			heading.setToolTipText(open && query.isEmpty() ? "Click to close" : "Click to open");
-			heading.addMouseListener(new MouseAdapter()
+			MouseAdapter toggle = new MouseAdapter()
 			{
 				@Override
 				public void mouseClicked(MouseEvent e)
@@ -261,7 +260,15 @@ class BankSearchPanel extends PluginPanel
 					}
 					rebuild();
 				}
-			});
+			};
+			// The whole heading and the card's padding toggle it: a label with a tooltip would otherwise take the
+			// click for itself
+			clickable(card, toggle);
+			clickable(heading, toggle);
+			for (Component child : heading.getComponents())
+			{
+				clickable(child, toggle);
+			}
 			content.add(card);
 		}
 	}
@@ -329,6 +336,8 @@ class BankSearchPanel extends PluginPanel
 		list.setFixedCellWidth(1);
 		list.setCellRenderer(new RowRenderer(changes));
 		list.setBackground(ColorScheme.DARKER_GRAY_COLOR);
+		// Not the hand of the card around it: rows don't click
+		panel.setCursor(Cursor.getDefaultCursor());
 		panel.add(list, BorderLayout.CENTER);
 		if (rows.size() > MAX_ROWS)
 		{
@@ -384,6 +393,12 @@ class BankSearchPanel extends PluginPanel
 		label.setForeground(color);
 		label.setAlignmentX(LEFT_ALIGNMENT);
 		return label;
+	}
+
+	private static void clickable(Component component, MouseAdapter onClick)
+	{
+		component.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+		component.addMouseListener(onClick);
 	}
 
 	/**
