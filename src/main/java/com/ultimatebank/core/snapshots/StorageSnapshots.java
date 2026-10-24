@@ -84,6 +84,8 @@ public class StorageSnapshots
 	private final Set<SnapshotLocation> openStorages = EnumSet.noneOf(SnapshotLocation.class);
 	/** Container and varbit storages to read next tick */
 	private final Set<SnapshotLocation> storageScans = EnumSet.noneOf(SnapshotLocation.class);
+	/** Container storages whose container changed while their interface was closed, to read next tick */
+	private final Set<SnapshotLocation> closedContainerChanges = EnumSet.noneOf(SnapshotLocation.class);
 	/** Container and varbit storages read since their interface last opened */
 	private final Set<SnapshotLocation> readThisOpen = EnumSet.noneOf(SnapshotLocation.class);
 	/** Ticks until varbit storages are read after logging in (their varbits arrive with the login) */
@@ -236,7 +238,16 @@ public class StorageSnapshots
 		}
 		else if (ContainerStorage.forInventory(event.getContainerId()) != null)
 		{
-			storageScans.add(ContainerStorage.forInventory(event.getContainerId()).location);
+			SnapshotLocation location = ContainerStorage.forInventory(event.getContainerId()).location;
+			if (openStorages.contains(location) || visitEntries.contains(location))
+			{
+				storageScans.add(location);
+			}
+			else
+			{
+				// Sent while it's closed, e.g. a pet item put in the pet house: still its real contents
+				closedContainerChanges.add(location);
+			}
 		}
 		else if (event.getContainerId() == InventoryID.INV && client.getWidget(InterfaceID.PohCostumes.UNIVERSE) != null)
 		{
@@ -423,6 +434,11 @@ public class StorageSnapshots
 			petHouseScanPending = false;
 			scanPetHouseVarps();
 		}
+		for (SnapshotLocation storage : closedContainerChanges)
+		{
+			scanClosedContainer(storage);
+		}
+		closedContainerChanges.clear();
 		for (SnapshotLocation storage : storageScans)
 		{
 			scanStorage(storage);
@@ -466,6 +482,7 @@ public class StorageSnapshots
 		pohVisit = null;
 		openStorages.clear();
 		storageScans.clear();
+		closedContainerChanges.clear();
 		readThisOpen.clear();
 		petHouseScanPending = false;
 		keyRing = new KeyRingKeys();
@@ -646,6 +663,22 @@ public class StorageSnapshots
 			}
 		}
 		return quantities;
+	}
+
+	/**
+	 * Records a container storage whose container changed while it was closed. An empty read is skipped (the game may
+	 * send an empty container before the real one).
+	 */
+	private void scanClosedContainer(SnapshotLocation storage)
+	{
+		Map<Integer, Integer> quantities = readStorage(storage);
+		Snapshot latest = latest(storage);
+		if (quantities == null || quantities.isEmpty() || latest != null && latest.getQuantities().equals(quantities))
+		{
+			return;
+		}
+		log.debug("Read {} while closed: {} items", storage, quantities.size());
+		record(storage, quantities);
 	}
 
 	/**
