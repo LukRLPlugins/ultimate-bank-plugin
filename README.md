@@ -6,8 +6,8 @@ A bank toolkit for [RuneLite](https://runelite.net) with two sidebar panels:
   the most bank space.
 - **Ultimate Bank Search** shows everything you own across your bank and POH storage, and what each visit changed.
 
-> **New in 1.4:** Ultimate Bank Search covers your seed vault, tackle box, kits, pet house, tool leprechaun and
-> fossil storage, and **Bank Tweaks** makes the "+" tag tab button list your tag tabs.
+> **New in 1.5:** Ultimate Bank Search covers your potion storage, steel key ring, master scroll book, Nightmare Zone
+> potions, Elnock Inquisitor and Hallowed Sepulchre tools.
 > See the [changelog](CHANGELOG.md) for every version.
 
 ## Ultimate Bank Savings

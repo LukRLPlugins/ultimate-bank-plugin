@@ -2,7 +2,7 @@
 
 What changed in each version of Ultimate Bank, newest first.
 
-## Unreleased
+## 1.5.0
 **New**
 - Ultimate Bank Search now also records your **master scroll book, Nightmare Zone potions, Elnock Inquisitor and
   Hallowed Sepulchre tools** (no need to open them), your **potion storage** (open the bank), and your **steel key
