@@ -25,13 +25,17 @@ final class KeyRingKeys
 
 	/**
 	 * A new total means a key was added or removed: the keys seen so far may include one that's gone, so start over.
+	 * Keys seen before the first total are kept.
 	 */
 	void setTotal(int total)
 	{
 		if (total != this.total)
 		{
+			if (this.total >= 0)
+			{
+				seen.clear();
+			}
 			this.total = total;
-			seen.clear();
 		}
 	}
 

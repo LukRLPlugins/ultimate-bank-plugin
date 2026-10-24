@@ -86,8 +86,10 @@ public class StorageSnapshots
 	private int loginScanDelay = -1;
 	/** Ticks left to keep re-reading the menagerie: its pet list fills in after it opens */
 	private int menagerieRescans;
-	/** Keys seen while the steel key ring is open; null while it's closed */
-	private KeyRingKeys keyRing;
+	/** Keys seen on the steel key ring this login. Kept across its openings: every Next click reopens it. */
+	private KeyRingKeys keyRing = new KeyRingKeys();
+	/** The key ring has been open since the last tick it was seen closed */
+	private boolean keyRingVisit;
 	private int keyRingSeenLogged = -1;
 	/** The potion store may have changed: read it next tick while the bank is open */
 	private boolean potionScanPending;
@@ -238,9 +240,9 @@ public class StorageSnapshots
 			pohScanDelay = POH_SCAN_DELAY_TICKS;
 			pohScanAttemptsLeft = POH_SCAN_ATTEMPTS;
 		}
-		if (event.getGroupId() == InterfaceID.FAVOUR_KEYRING)
+		if (event.getGroupId() == InterfaceID.FAVOUR_KEYRING && !keyRingVisit)
 		{
-			keyRing = new KeyRingKeys();
+			keyRingVisit = true;
 			readThisOpen.remove(SnapshotLocation.STEEL_KEY_RING);
 		}
 
@@ -261,11 +263,6 @@ public class StorageSnapshots
 	@Subscribe
 	public void onWidgetClosed(WidgetClosed event)
 	{
-		if (event.getGroupId() == InterfaceID.FAVOUR_KEYRING)
-		{
-			keyRing = null;
-			visitEntries.remove(SnapshotLocation.STEEL_KEY_RING);
-		}
 		SnapshotLocation storage = interfaceStorage(event.getGroupId());
 		if (storage != null)
 		{
@@ -294,13 +291,17 @@ public class StorageSnapshots
 	@Subscribe
 	public void onScriptPreFired(ScriptPreFired event)
 	{
-		if (event.getScriptId() != KEY_RING_SCRIPT || keyRing == null || event.getScriptEvent() == null)
+		if (event.getScriptId() != KEY_RING_SCRIPT || event.getScriptEvent() == null)
 		{
 			return;
 		}
 		Object[] args = event.getScriptEvent().getArguments();
 		log.debug("Key ring script args: {}", Arrays.toString(args));
-		// args[0] is the script; then the current, previous and next keys. Only take ones that really are keys.
+		// args[0] is the script; then the current, previous and next keys, and the total
+		if (args != null && args.length > 4 && args[4] instanceof Integer)
+		{
+			keyRing.setTotal((Integer) args[4]);
+		}
 		for (int i = 1; args != null && i < Math.min(args.length, 4); i++)
 		{
 			if (args[i] instanceof Integer && isKey((Integer) args[i]))
@@ -326,9 +327,17 @@ public class StorageSnapshots
 				scanPotionStorage();
 			}
 		}
-		if (keyRing != null)
+		if (keyRingVisit)
 		{
-			scanKeyRing();
+			if (client.getWidget(InterfaceID.FavourKeyring.KEYTOTAL) == null)
+			{
+				keyRingVisit = false;
+				visitEntries.remove(SnapshotLocation.STEEL_KEY_RING);
+			}
+			else
+			{
+				scanKeyRing();
+			}
 		}
 
 		if (pohScanDelay > 0)
@@ -390,7 +399,8 @@ public class StorageSnapshots
 		storageScans.clear();
 		readThisOpen.clear();
 		menagerieRescans = 0;
-		keyRing = null;
+		keyRing = new KeyRingKeys();
+		keyRingVisit = false;
 		potionScanPending = false;
 	}
 
@@ -474,9 +484,10 @@ public class StorageSnapshots
 	private void scanKeyRing()
 	{
 		Widget total = client.getWidget(InterfaceID.FavourKeyring.KEYTOTAL);
-		if (total != null)
+		int shownTotal = total == null ? -1 : KeyRingKeys.parseTotal(total.getText());
+		if (shownTotal >= 0)
 		{
-			keyRing.setTotal(KeyRingKeys.parseTotal(total.getText()));
+			keyRing.setTotal(shownTotal);
 		}
 		Widget shown = client.getWidget(InterfaceID.FavourKeyring.MAIN);
 		if (shown != null && isKey(shown.getItemId()))

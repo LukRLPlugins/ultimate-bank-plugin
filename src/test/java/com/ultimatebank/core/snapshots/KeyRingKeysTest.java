@@ -57,6 +57,15 @@ public class KeyRingKeysTest
 	}
 
 	@Test
+	public void keysSeenBeforeTheTotalAreKept()
+	{
+		KeyRingKeys ring = new KeyRingKeys();
+		ring.see(1);
+		ring.setTotal(1);
+		assertEquals(Map.of(1, 1), ring.contents(Set.of()));
+	}
+
+	@Test
 	public void emptyRingAndUnknownTotal()
 	{
 		KeyRingKeys ring = new KeyRingKeys();
