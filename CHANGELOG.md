@@ -5,7 +5,7 @@ What changed in each version of Ultimate Bank, newest first.
 ## Unreleased
 **New**
 - Bank Savings: a **Corner icon** marker style. Each storable item shows the icon of the storage it would go in (a
-  tackle box for fishing gear, a max cape for skillcapes, and so on), with its own size setting.
+  tackle box for fishing gear, a max cape for skillcapes, and so on). Marker size sets its size too.
 
 ## 1.5.1
 **Fixed**

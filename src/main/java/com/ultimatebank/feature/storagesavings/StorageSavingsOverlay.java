@@ -41,6 +41,8 @@ class StorageSavingsOverlay extends WidgetItemOverlay
 	private static final Color BADGE = new Color(0, 0, 0, 170);
 	/** Space between the icon and its badge's edge */
 	private static final int BADGE_PAD = 2;
+	/** How much bigger the icon is than the triangle at the same marker size: a sprite needs more pixels to read */
+	private static final int ICON_EXTRA = 8;
 
 	private final Client client;
 	private final TooltipManager tooltipManager;
@@ -128,7 +130,7 @@ class StorageSavingsOverlay extends WidgetItemOverlay
 	private void drawIcon(Graphics2D graphics, int itemId, Rectangle bounds, Color color)
 	{
 		Integer iconItemId = state.get().getMarkerIcons().get(itemId);
-		BufferedImage icon = iconItemId == null ? null : icon(iconItemId, config.storageSavingsMarkerIconSize());
+		BufferedImage icon = iconItemId == null ? null : icon(iconItemId, config.storageSavingsMarkerSize() + ICON_EXTRA);
 		if (icon == null)
 		{
 			drawTriangle(graphics, bounds, color);

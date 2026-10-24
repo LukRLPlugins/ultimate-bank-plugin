@@ -15,7 +15,7 @@
 
 ## Behaviour
 After the bank has been opened this session:
-- **Bank marker:** each storable bank item is marked in a configurable style (item outline, box outline, corner triangle, or corner icon; colour, outline thickness, triangle size, icon size and corner are configurable). The corner icon is the sprite of the storage the item would go in (e.g. the tackle box, a max cape for the cape rack), on a dark badge edged in the marker colour; an item that fits several storages shows the top-ranked one, as the `storable` tab does. Sprites are cropped to their visible pixels and shrunk with area averaging (never enlarged), and the triangle shows until a sprite has loaded. Hovering lists every enabled
+- **Bank marker:** each storable bank item is marked in a configurable style (item outline, box outline, corner triangle, or corner icon; colour, outline thickness, marker size and corner are configurable; the icon is drawn 8 px bigger than the triangle at the same size). The corner icon is the sprite of the storage the item would go in (e.g. the tackle box, a max cape for the cape rack), on a dark badge edged in the marker colour; an item that fits several storages shows the top-ranked one, as the `storable` tab does. Sprites are cropped to their visible pixels and shrunk with area averaging (never enlarged), and the triangle shows until a sprite has loaded. Hovering lists every enabled
   place it can go, with at most 3 STASH units plus "...and N more".
 - **Sidebar panel:** ranks storage locations by how many bank slots they would free, most first. POH builds are
   orange. Click a location to list its items. This answers "which upgrade frees the most space". An "Edit storage
@@ -67,8 +67,7 @@ Section "Bank Savings: General":
 | `storageSavingsMarkerColor` | Color | (255,200,0) |
 | `storageSavingsMarkerStyle` | Item outline / Box outline / Corner triangle / Corner icon | Corner triangle |
 | `storageSavingsMarkerCorner` | Top/bottom left/right | Bottom right |
-| `storageSavingsMarkerSize` | int 4–24 (triangle) | 8 |
-| `storageSavingsMarkerIconSize` | int 10–32 (icon) | 16 |
+| `storageSavingsMarkerSize` | int 4–24 (triangle; icon is +8 px) | 8 |
 | `storageSavingsMarkerThickness` | int 1–4 (outlines) | 1 |
 | `storageSavingsTagTab` | boolean | true |
 | `storageSavingsTagTabGroups` | boolean | true |
@@ -102,7 +101,7 @@ Internal (not shown): `storageSavingsTagTabCreated` (global), `storageSavingsSta
 
 ## In-game test checklist
 - [ ] Marker style: Item outline, Box outline, Corner triangle; colour, outline thickness, triangle size and corner
-- [ ] Corner icon: each item shows its storage's sprite on a badge (fishing gear: tackle box; capes: max cape); icon size 10–32 stays sharp; every corner works; an item that fits two storages shows the top-ranked one
+- [ ] Corner icon: each item shows its storage's sprite on a badge (fishing gear: tackle box; capes: max cape); marker size 4–24 (icon 12–32 px) stays sharp; every corner works; an item that fits two storages shows the top-ranked one
 - [ ] Enter your costume room: tiers are detected (log "Detected FANCY_DRESS_BOX tier Oak" etc.); panel rows show
       the tier, e.g. "POH fancy dress box · Oak · +3 with Teak"
 - [ ] Oak fancy dress box with 3+ costumes banked: only the 2 costumes with the most banked pieces are suggested
